@@ -697,30 +697,30 @@ if not st.session_state.messages:
 
     cards_html = '<div class="kv-actions-grid">'
     for action in PRIMARY_ACTIONS:
-        cards_html += f"""
-        <a class="kv-action-card" href="?qa={action['id']}" target="_self">
-          <div class="kv-action-icon">{action['icon']}</div>
-          <div class="kv-action-title">{action['title']}</div>
-          <div class="kv-action-desc">{action['desc']}</div>
-        </a>
-        """
+        cards_html += (
+            f'<a class="kv-action-card" href="?qa={action["id"]}" target="_self">'
+            f'<div class="kv-action-icon">{action["icon"]}</div>'
+            f'<div class="kv-action-title">{action["title"]}</div>'
+            f'<div class="kv-action-desc">{action["desc"]}</div>'
+            f'</a>'
+        )
     cards_html += '</div>'
-    st.markdown(cards_html, unsafe_allow_html=True)
+    st.html(cards_html)
 
     # Activité récente — liste simple
     st.markdown('<div class="kv-section-tag">Activité récente</div>', unsafe_allow_html=True)
 
     list_html = '<div class="kv-act-list">'
     for icon, color, text, time in ACTIVITY:
-        list_html += f"""
-        <div class="kv-act-item">
-          <div class="kv-act-icon {color}">{icon}</div>
-          <div class="kv-act-text">{text}</div>
-          <div class="kv-act-time">{time}</div>
-        </div>
-        """
+        list_html += (
+            f'<div class="kv-act-item">'
+            f'<div class="kv-act-icon {color}">{icon}</div>'
+            f'<div class="kv-act-text">{text}</div>'
+            f'<div class="kv-act-time">{time}</div>'
+            f'</div>'
+        )
     list_html += '</div>'
-    st.markdown(list_html, unsafe_allow_html=True)
+    st.html(list_html)
 
     # Footer hint
     st.markdown("""
