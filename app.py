@@ -187,17 +187,25 @@ section[data-testid="stMain"], .main {
   color: var(--txt); letter-spacing: -0.025em; line-height: 1;
   display: flex; align-items: center; margin-bottom: 12px;
 }
-/* Tiret discret entre K et VEFA — en-dash réduit, plus aéré */
+/* Tiret entre K et VEFA — petite barre CSS dessinée, contrôle pixel-perfect.
+   Le caractère em-dash unicode reste trop dominant même réduit ; une barre
+   CSS de 7px × 1.5px à mi-hauteur des capitales donne un rendu typographique
+   plus serré et premium type Apple / Linear. */
 .kv-logotype em {
-  color: var(--gold);
-  font-style: normal;
-  font-weight: 300;
-  font-size: 0.62em;
-  opacity: 0.7;
-  margin: 0 0.18em;
+  display: inline-block;
+  width: 7px;
+  height: 1.5px;
+  background: var(--gold);
+  opacity: 0.55;
+  border-radius: 1px;
+  margin: 0 6px;
+  vertical-align: middle;
   position: relative;
-  top: -0.12em;
-  letter-spacing: 0;
+  top: -3px;
+  font-size: 0 !important;          /* masque le caractère original */
+  color: transparent !important;
+  text-indent: -9999px;              /* fallback masquage du glyphe */
+  overflow: hidden;
 }
 .kv-logotype-badge {
   display: inline-flex; align-items: center;
