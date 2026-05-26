@@ -2,7 +2,6 @@ import os
 import streamlit as st
 import anthropic
 
-# ── Config ────────────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="K—VEFA Intelligence",
     page_icon="⬡",
@@ -10,793 +9,464 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ── Design system ─────────────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════════════
+# DESIGN SYSTEM — v3 premium
+# ══════════════════════════════════════════════════════════════════════════════
 CSS = """
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 
-/* ═══ TOKENS ══════════════════════════════════════════════════════════════ */
+/* ── TOKENS ──────────────────────────────────────────────────────────────── */
 :root {
-  --bg:          #0A0E1A;
-  --bg-2:        #0F1424;
-  --bg-3:        #151A2E;
-  --bg-4:        #1A1F33;
-  --gold:        #B8975E;
-  --gold-lt:     #D4B574;
-  --gold-dk:     #A07F47;
-  --gold-8:      rgba(184,151,94,0.08);
-  --gold-12:     rgba(184,151,94,0.12);
-  --gold-18:     rgba(184,151,94,0.18);
-  --gold-25:     rgba(184,151,94,0.25);
-  --gold-border: rgba(184,151,94,0.22);
-  --cream:       #F8F4ED;
-  --cream-2:     #F3EFE6;
-  --txt:         #E8E2D5;
-  --txt-muted:   rgba(232,226,213,0.55);
-  --txt-soft:    rgba(232,226,213,0.35);
-  --border:      rgba(232,226,213,0.09);
-  --border-2:    rgba(232,226,213,0.05);
-  --serif:       'Fraunces', Georgia, serif;
-  --sans:        'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --ease:        cubic-bezier(.4,0,.2,1);
-  --shadow:      0 8px 40px -12px rgba(10,14,26,0.6);
-  --shadow-lg:   0 25px 80px -20px rgba(10,14,26,0.8);
-  --glow:        0 0 40px rgba(184,151,94,0.06);
+  --bg:     #070B17;
+  --bg-2:   #0B0F1E;
+  --bg-3:   #0F1426;
+  --bg-4:   #141930;
+  --bg-5:   #1A2040;
+  --gold:   #C4A46B;
+  --gold-lt:#D4B98A;
+  --gold-dk:#A07A42;
+  --g8:  rgba(196,164,107,0.08);
+  --g12: rgba(196,164,107,0.12);
+  --g20: rgba(196,164,107,0.20);
+  --g28: rgba(196,164,107,0.28);
+  --gbr: rgba(196,164,107,0.18);
+  --cream: #EDE7D4;
+  --txt:   #D8D0BC;
+  --txt2:  rgba(216,208,188,0.60);
+  --txt3:  rgba(216,208,188,0.34);
+  --bd:    rgba(216,208,188,0.07);
+  --bd2:   rgba(216,208,188,0.04);
+  --serif: 'Fraunces', Georgia, serif;
+  --sans:  'Inter', -apple-system, sans-serif;
+  --ease:  cubic-bezier(.4,0,.2,1);
+  --eout:  cubic-bezier(0,.55,.45,1);
+  --sh:    0 8px 48px -16px rgba(0,0,0,0.75);
+  --shg:   0 0 60px -20px rgba(196,164,107,0.14);
 }
 
-/* ═══ BASE ════════════════════════════════════════════════════════════════ */
+/* ── RESET ───────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
+html, body { background: var(--bg) !important; font-family: var(--sans); -webkit-font-smoothing: antialiased; font-feature-settings: "ss01","cv11"; }
+.stApp { background: var(--bg) !important; color: var(--txt); }
 
-html, body {
-  background: var(--bg) !important;
-  font-family: var(--sans);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  font-feature-settings: "ss01","cv11";
-}
-
-.stApp {
-  background: var(--bg) !important;
-  color: var(--txt);
-}
-
-/* Subtle architectural grid pattern */
+/* ── BACKGROUND — architectural depth (no cheap grid) ───────────────────── */
 .stApp::before {
   content: '';
-  position: fixed;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(184,151,94,0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(184,151,94,0.025) 1px, transparent 1px);
-  background-size: 72px 72px;
-  pointer-events: none;
-  z-index: 0;
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(ellipse 130% 55% at 50% -10%, rgba(196,164,107,0.055) 0%, transparent 55%),
+    radial-gradient(ellipse 55% 90% at -5% 60%,  rgba(196,164,107,0.022) 0%, transparent 50%),
+    radial-gradient(ellipse 55% 90% at 105% 60%, rgba(100,130,220,0.025) 0%, transparent 50%);
 }
-
-/* Gold radial glow from top */
 .stApp::after {
   content: '';
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  height: 400px;
-  background: radial-gradient(ellipse 80% 100% at 50% -10%, rgba(184,151,94,0.07) 0%, transparent 100%);
-  pointer-events: none;
-  z-index: 0;
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image:
+    repeating-linear-gradient(0deg,   transparent, transparent 95px, rgba(196,164,107,0.016) 95px, rgba(196,164,107,0.016) 96px),
+    repeating-linear-gradient(90deg,  transparent, transparent 191px,rgba(196,164,107,0.010) 191px,rgba(196,164,107,0.010) 192px);
 }
 
-/* Streamlit chrome - hide */
-#MainMenu, footer,
-[data-testid="stToolbar"],
-[data-testid="stDecoration"],
-[data-testid="stStatusWidget"],
-.stDeployButton { display: none !important; }
+/* ── CHROME HIDE ─────────────────────────────────────────────────────────── */
+#MainMenu, footer, [data-testid="stToolbar"], [data-testid="stDecoration"],
+[data-testid="stStatusWidget"], .stDeployButton { display: none !important; }
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 3px; height: 3px; }
+/* ── SCROLLBAR ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(184,151,94,0.2); border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(184,151,94,0.4); }
+::-webkit-scrollbar-thumb { background: rgba(196,164,107,0.2); border-radius: 2px; }
+::selection { background: rgba(196,164,107,0.22); color: var(--cream); }
 
-/* Selection */
-::selection { background: var(--gold); color: var(--bg); }
-
-/* ═══ LAYOUT ══════════════════════════════════════════════════════════════ */
-
-/* Main section = full-viewport flex column */
+/* ── LAYOUT ──────────────────────────────────────────────────────────────── */
 section[data-testid="stMain"], .main {
-  display: flex !important;
-  flex-direction: column !important;
-  min-height: 100vh !important;
-  overflow-y: auto !important;
+  display: flex !important; flex-direction: column !important;
+  min-height: 100vh !important; overflow-y: auto !important;
 }
-
-/* Content block grows to fill available space */
-.block-container,
-[data-testid="stAppViewBlockContainer"] {
-  flex: 1 1 auto !important;
-  padding: 0 48px 32px !important;
-  max-width: 100% !important;
-  position: relative;
-  z-index: 1;
+.block-container, [data-testid="stAppViewBlockContainer"] {
+  flex: 1 1 auto !important; padding: 0 44px 24px !important;
+  max-width: 100% !important; position: relative; z-index: 1;
 }
+[data-testid="stChatInputContainer"] { flex-shrink: 0 !important; margin-top: auto !important; }
 
-/* Chat input pinned to bottom via flex */
-[data-testid="stChatInputContainer"] {
-  flex-shrink: 0 !important;
-  margin-top: auto !important;
-}
-
-/* ═══ SIDEBAR ═════════════════════════════════════════════════════════════ */
+/* ── SIDEBAR ─────────────────────────────────────────────────────────────── */
 [data-testid="stSidebar"] {
   background: var(--bg-2) !important;
-  border-right: 1px solid var(--border) !important;
-  min-width: 240px !important;
-  max-width: 260px !important;
+  border-right: 1px solid var(--bd) !important;
+  min-width: 256px !important; max-width: 272px !important;
 }
+[data-testid="stSidebarContent"] { padding: 0 !important; background: transparent !important; }
 
-[data-testid="stSidebarContent"] {
-  padding: 0 !important;
-  background: transparent !important;
-}
-
-/* ── Sidebar Logo ── */
-.kv-sidebar-logo {
-  padding: 28px 22px 20px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 8px;
-}
-
+.kv-logo-wrap { padding: 22px 20px 16px; border-bottom: 1px solid var(--bd); margin-bottom: 2px; }
 .kv-logotype {
-  font-family: var(--serif);
-  font-size: 1.35rem;
-  font-weight: 500;
-  color: var(--txt);
-  letter-spacing: -0.025em;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  gap: 0;
-  margin-bottom: 4px;
+  font-family: var(--serif); font-size: 1.28rem; font-weight: 400;
+  color: var(--txt); letter-spacing: -0.03em; line-height: 1;
+  display: flex; align-items: center; margin-bottom: 6px;
 }
 .kv-logotype em { color: var(--gold); font-style: normal; }
-
-.kv-sidebar-sub {
-  font-size: 0.65rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--txt-soft);
+.kv-logotype-badge {
+  display: inline-flex; align-items: center;
+  font-size: 0.5rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--bg); background: var(--gold); border-radius: 2px;
+  padding: 2px 5px; margin-left: 7px; position: relative; top: -1px;
 }
-
-.kv-badge {
-  display: inline-flex;
-  align-items: center;
-  font-size: 0.58rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--bg);
-  background: var(--gold);
-  border-radius: 2px;
-  padding: 2px 5px;
-  margin-left: 8px;
-  vertical-align: middle;
-  position: relative;
-  top: -1px;
+.kv-ai-status { display: flex; align-items: center; gap: 6px; }
+.kv-status-ring {
+  width: 7px; height: 7px; border-radius: 50%; background: #4ADE80;
+  box-shadow: 0 0 8px rgba(74,222,128,0.5);
+  animation: kv-pulse-green 2.4s ease-in-out infinite;
 }
+.kv-status-label { font-size: 0.58rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(74,222,128,0.65); }
 
-/* ── Sidebar Nav Label ── */
-.kv-nav-section {
-  padding: 16px 22px 6px;
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--txt-soft);
-}
+.kv-nav-label { padding: 14px 20px 5px; font-size: 0.57rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--txt3); }
 
-/* ── Sidebar Buttons (nav) ── */
 [data-testid="stSidebar"] [data-testid="stButton"] button {
-  background: transparent !important;
-  border: none !important;
-  color: var(--txt-muted) !important;
-  text-align: left !important;
-  font-family: var(--sans) !important;
-  font-size: 0.875rem !important;
-  font-weight: 400 !important;
-  padding: 8px 22px !important;
-  border-radius: 0 !important;
-  width: 100% !important;
-  transition: all .15s var(--ease) !important;
-  border-left: 2px solid transparent !important;
-  letter-spacing: 0 !important;
-  text-transform: none !important;
+  background: transparent !important; border: none !important;
+  color: var(--txt2) !important; text-align: left !important;
+  font-family: var(--sans) !important; font-size: 0.84rem !important; font-weight: 400 !important;
+  padding: 7px 20px !important; border-radius: 0 !important; width: 100% !important;
+  border-left: 2px solid transparent !important; letter-spacing: 0 !important;
+  text-transform: none !important; transition: all .15s var(--ease) !important;
 }
 [data-testid="stSidebar"] [data-testid="stButton"] button:hover {
-  background: var(--gold-8) !important;
-  color: var(--txt) !important;
-  border-left-color: var(--gold-border) !important;
-}
-[data-testid="stSidebar"] [data-testid="stButton"] button:active,
-[data-testid="stSidebar"] [data-testid="stButton"] button:focus {
-  background: var(--gold-12) !important;
-  color: var(--gold) !important;
-  border-left-color: var(--gold) !important;
-  box-shadow: none !important;
+  background: var(--g8) !important; color: var(--txt) !important; border-left-color: var(--gbr) !important;
 }
 
-/* ── Sidebar Divider ── */
-.kv-sidebar-divider {
-  height: 1px;
-  background: var(--border);
-  margin: 12px 22px;
-}
+.kv-div { height: 1px; background: var(--bd); margin: 10px 20px; }
 
-/* ── Sidebar Status ── */
-.kv-sidebar-status {
-  padding: 14px 22px;
-  margin: 8px 12px;
-  background: var(--gold-8);
-  border: 1px solid var(--gold-border);
-  border-radius: 5px;
+/* Activity feed */
+.kv-activity {
+  margin: 4px 10px 8px; padding: 14px 15px;
+  background: linear-gradient(145deg, var(--bg-3) 0%, var(--bg-4) 100%);
+  border: 1px solid var(--bd); border-radius: 7px;
 }
-.kv-status-dot {
-  display: inline-block;
-  width: 6px; height: 6px;
-  background: var(--gold);
-  border-radius: 50%;
-  margin-right: 7px;
-  animation: kv-pulse 2s ease-in-out infinite;
-}
-.kv-status-text {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--gold);
-  letter-spacing: 0.06em;
-}
-.kv-status-sub {
-  font-size: 0.65rem;
-  color: var(--txt-muted);
-  margin-top: 3px;
-  padding-left: 13px;
-}
+.kv-widget-head { font-size: 0.57rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--txt3); margin-bottom: 10px; }
+.kv-act-row { display: flex; align-items: flex-start; gap: 9px; margin-bottom: 9px; padding-bottom: 9px; border-bottom: 1px solid var(--bd2); }
+.kv-act-row:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+.kv-act-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); opacity: 0.55; margin-top: 5px; flex-shrink: 0; }
+.kv-act-main { font-size: 0.72rem; color: var(--txt2); line-height: 1.4; }
+.kv-act-time { font-size: 0.62rem; color: var(--txt3); display: block; margin-top: 2px; }
 
-/* ── Sidebar Footer ── */
-.kv-sidebar-footer {
-  position: absolute;
-  bottom: 0;
-  left: 0; right: 0;
-  padding: 16px 22px;
-  border-top: 1px solid var(--border);
-  background: var(--bg-2);
+/* Market insight */
+.kv-insight {
+  margin: 0 10px 8px; padding: 11px 14px;
+  background: var(--g8); border: 1px solid var(--gbr); border-radius: 6px;
 }
-.kv-sidebar-footer-text {
-  font-size: 0.65rem;
-  color: var(--txt-soft);
-  letter-spacing: 0.06em;
-}
+.kv-insight-head { font-size: 0.57rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); opacity: 0.7; margin-bottom: 5px; }
+.kv-insight-val { font-family: var(--serif); font-size: 1.2rem; font-weight: 300; color: var(--txt); line-height: 1; }
+.kv-insight-delta { font-size: 0.68rem; color: #4ADE80; margin-top: 3px; display: flex; align-items: center; gap: 3px; }
 
-/* ═══ MAIN HEADER BAR ════════════════════════════════════════════════════ */
-.kv-topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 0 0;
-  margin-bottom: 32px;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 18px;
+/* Model tag */
+.kv-model-strip {
+  margin: 0 10px 10px; padding: 8px 12px;
+  background: var(--bg-3); border: 1px solid var(--bd); border-radius: 5px;
+  display: flex; align-items: center; gap: 7px;
 }
-.kv-topbar-left {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-.kv-breadcrumb {
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--txt-soft);
-}
-.kv-breadcrumb span {
-  color: var(--gold);
-  margin: 0 6px;
-}
-.kv-topbar-title {
-  font-family: var(--serif);
-  font-size: 1.1rem;
-  font-weight: 500;
-  color: var(--txt);
-  letter-spacing: -0.02em;
-}
+.kv-model-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); animation: kv-pulse-gold 2.5s ease-in-out infinite; flex-shrink: 0; }
+.kv-model-name { font-size: 0.63rem; font-weight: 600; color: var(--txt3); letter-spacing: 0.07em; }
 
-/* ═══ MODULE CARDS ═══════════════════════════════════════════════════════ */
+/* Session status */
+.kv-session {
+  margin: 0 10px 10px; padding: 12px 14px;
+  background: var(--g8); border: 1px solid var(--gbr); border-radius: 6px;
+}
+.kv-session-row { display: flex; align-items: center; gap: 7px; }
+.kv-session-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); animation: kv-pulse-gold 2s ease-in-out infinite; }
+.kv-session-label { font-size: 0.7rem; font-weight: 600; color: var(--gold); letter-spacing: 0.07em; }
+.kv-session-sub { font-size: 0.63rem; color: var(--txt3); margin-top: 4px; padding-left: 13px; }
+
+/* ── HERO ────────────────────────────────────────────────────────────────── */
+.kv-hero {
+  position: relative; padding: 44px 0 36px; overflow: hidden;
+}
+.kv-hero-deco {
+  position: absolute; right: -40px; top: 10px;
+  width: 280px; height: 280px;
+  border: 1px solid rgba(196,164,107,0.07);
+  transform: rotate(15deg); pointer-events: none;
+}
+.kv-hero-deco-2 {
+  position: absolute; right: 40px; top: 50px;
+  width: 160px; height: 160px;
+  border: 1px solid rgba(196,164,107,0.04);
+  transform: rotate(15deg); pointer-events: none;
+}
+.kv-hero-label {
+  font-size: 0.6rem; font-weight: 700; letter-spacing: 0.24em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 14px;
+  display: flex; align-items: center; gap: 10px;
+  animation: kv-fade-up 0.45s var(--eout) both;
+}
+.kv-hero-label::before { content: ''; width: 22px; height: 1px; background: var(--gold); opacity: 0.45; }
+.kv-hero-title {
+  font-family: var(--serif); font-size: clamp(1.9rem, 3.2vw, 2.85rem);
+  font-weight: 300; color: var(--txt); letter-spacing: -0.035em;
+  line-height: 1.08; margin-bottom: 15px;
+  animation: kv-fade-up 0.5s var(--eout) 0.05s both;
+}
+.kv-hero-title em { color: var(--gold); font-style: italic; font-weight: 300; }
+.kv-hero-title strong { font-weight: 400; color: var(--txt); }
+.kv-hero-sub {
+  font-size: 0.88rem; color: var(--txt2); line-height: 1.65;
+  max-width: 500px; margin-bottom: 28px;
+  animation: kv-fade-up 0.55s var(--eout) 0.1s both;
+}
+.kv-metrics {
+  display: flex; gap: 0; margin-bottom: 0;
+  animation: kv-fade-up 0.6s var(--eout) 0.15s both;
+}
+.kv-metric { padding: 11px 20px; border: 1px solid var(--bd); border-right: none; background: var(--bg-2); }
+.kv-metric:first-child { border-radius: 6px 0 0 6px; }
+.kv-metric:last-child  { border-right: 1px solid var(--bd); border-radius: 0 6px 6px 0; }
+.kv-metric-val { font-family: var(--serif); font-size: 1.25rem; font-weight: 300; color: var(--gold); letter-spacing: -0.03em; line-height: 1; margin-bottom: 3px; }
+.kv-metric-lbl { font-size: 0.6rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--txt3); }
+
+/* ── SECTION LABEL ───────────────────────────────────────────────────────── */
+.kv-section-label {
+  font-size: 0.59rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--txt3); margin: 26px 0 14px;
+  display: flex; align-items: center; gap: 12px;
+}
+.kv-section-label::after { content: ''; flex: 1; height: 1px; background: var(--bd); }
+
+/* ── MODULE CARDS v3 ─────────────────────────────────────────────────────── */
 .kv-module {
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 22px 20px 18px;
-  margin-bottom: -1px;
-  transition: all .22s var(--ease);
-  position: relative;
-  overflow: hidden;
+  background: linear-gradient(155deg, var(--bg-2) 0%, var(--bg-3) 100%);
+  border: 1px solid var(--bd); border-radius: 8px;
+  overflow: hidden; cursor: pointer; position: relative;
+  transition: transform .28s var(--ease), border-color .28s var(--ease), box-shadow .28s var(--ease);
+  animation: kv-fade-up 0.5s var(--eout) both;
 }
 .kv-module::before {
   content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold-25), transparent);
-  opacity: 0;
-  transition: opacity .22s var(--ease);
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--gold) 50%, transparent 100%);
+  opacity: 0; transition: opacity .3s var(--ease);
 }
-.kv-module:hover { border-color: var(--gold-border); background: var(--bg-3); }
+.kv-module:hover { border-color: var(--gbr); transform: translateY(-3px); box-shadow: var(--sh), var(--shg); }
 .kv-module:hover::before { opacity: 1; }
 
-.kv-module-icon {
-  width: 36px; height: 36px;
-  background: var(--gold-12);
-  border-radius: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--gold);
-  font-size: 0.95rem;
-  margin-bottom: 14px;
+.kv-module-img-wrap { position: relative; height: 120px; overflow: hidden; }
+.kv-module-img { width: 100%; height: 100%; object-fit: cover; display: block; filter: grayscale(25%) saturate(0.75) brightness(0.85); transition: filter .4s var(--ease), transform .4s var(--ease); }
+.kv-module:hover .kv-module-img { filter: grayscale(0%) saturate(1) brightness(0.95); transform: scale(1.04); }
+.kv-module-img-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom, rgba(7,11,23,0.15) 0%, rgba(7,11,23,0.78) 100%);
+}
+.kv-module-img-cat {
+  position: absolute; bottom: 10px; left: 14px;
+  font-size: 0.58rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--gold); background: rgba(7,11,23,0.6); padding: 3px 8px; border-radius: 2px;
+  backdrop-filter: blur(4px);
+}
+.kv-module-body { padding: 16px 18px 18px; }
+.kv-module-title { font-family: var(--serif); font-size: 1.02rem; font-weight: 400; color: var(--txt); letter-spacing: -0.025em; margin-bottom: 6px; line-height: 1.2; }
+.kv-module-desc { font-size: 0.77rem; color: var(--txt2); line-height: 1.5; margin-bottom: 12px; }
+
+/* AI Preview snippet */
+.kv-preview {
+  background: var(--bg); border: 1px solid var(--bd); border-radius: 5px;
+  padding: 8px 11px; margin-bottom: 13px; position: relative; overflow: hidden;
+}
+.kv-preview-tag {
+  font-size: 0.5rem; font-weight: 700; letter-spacing: 0.1em; color: var(--gold);
+  opacity: 0.45; text-transform: uppercase;
+  position: absolute; top: 6px; right: 8px;
+}
+.kv-preview-text {
+  font-size: 0.71rem; color: var(--txt2); line-height: 1.45; font-style: italic;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
-.kv-module-cat {
-  font-size: 0.63rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--gold);
-  margin-bottom: 6px;
-}
+.kv-module-foot { display: flex; align-items: center; justify-content: space-between; }
+.kv-module-arrow { font-size: 0.7rem; font-weight: 600; color: var(--gold); letter-spacing: 0.06em; transition: letter-spacing .2s var(--ease), gap .2s var(--ease); display: flex; align-items: center; gap: 4px; }
+.kv-module:hover .kv-module-arrow { letter-spacing: 0.12em; }
+.kv-module-usage { font-size: 0.6rem; color: var(--txt3); letter-spacing: 0.04em; }
 
-.kv-module-title {
-  font-family: var(--serif);
-  font-size: 1rem;
-  font-weight: 500;
-  color: var(--txt);
-  letter-spacing: -0.02em;
-  margin-bottom: 6px;
-  line-height: 1.2;
+/* ── CHIP PROMPTS ────────────────────────────────────────────────────────── */
+.kv-chips { display: flex; flex-wrap: wrap; gap: 7px; margin: 20px 0 12px; animation: kv-fade-up 0.55s var(--eout) 0.2s both; }
+.kv-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 13px; background: var(--bg-2);
+  border: 1px solid var(--bd); border-radius: 100px;
+  font-size: 0.76rem; color: var(--txt2);
+  cursor: pointer; white-space: nowrap;
+  transition: all .18s var(--ease);
 }
+.kv-chip:hover { background: var(--g8); border-color: var(--gbr); color: var(--gold-lt); transform: translateY(-1px); }
 
-.kv-module-desc {
-  font-size: 0.8rem;
-  color: var(--txt-muted);
-  line-height: 1.5;
-  margin-bottom: 14px;
+/* ── COMMAND CENTER AREA ─────────────────────────────────────────────────── */
+.kv-command-bar {
+  padding: 14px 44px 6px;
+  animation: kv-fade-up 0.6s var(--eout) 0.25s both;
 }
-
-.kv-module-arrow {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--gold);
-  letter-spacing: 0.06em;
-  opacity: 0.7;
-  transition: all .15s var(--ease);
+.kv-command-label {
+  font-size: 0.59rem; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--txt3); margin-bottom: 8px;
+  display: flex; align-items: center; gap: 8px;
 }
-.kv-module:hover .kv-module-arrow {
-  opacity: 1;
-  letter-spacing: 0.1em;
-}
-
-/* Module button overlay */
-.stMarkdown:has(.kv-module) ~ [data-testid="stButton"] > button,
-[data-testid="stVerticalBlock"] > [data-testid="stButton"]:last-child > button {
-  background: var(--bg-2) !important;
-  border: 1px solid var(--border) !important;
-  border-top: none !important;
-  border-radius: 0 0 6px 6px !important;
-  color: var(--gold) !important;
-  font-size: 0.75rem !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.08em !important;
-  text-transform: uppercase !important;
-  padding: 10px 20px !important;
-  transition: all .2s var(--ease) !important;
-}
-
-/* ═══ WELCOME SECTION ════════════════════════════════════════════════════ */
-.kv-welcome {
-  text-align: center;
-  padding: 20px 0 36px;
-}
-.kv-welcome-label {
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--gold);
-  margin-bottom: 10px;
-}
-.kv-welcome-title {
-  font-family: var(--serif);
-  font-size: clamp(1.6rem, 3vw, 2.4rem);
-  font-weight: 500;
-  color: var(--txt);
-  letter-spacing: -0.025em;
-  line-height: 1.15;
-  margin-bottom: 10px;
-}
-.kv-welcome-title em { color: var(--gold); font-style: normal; }
-.kv-welcome-sub {
-  font-size: 0.9rem;
-  color: var(--txt-muted);
-  line-height: 1.6;
-  max-width: 480px;
-  margin: 0 auto;
-}
-
-/* ═══ SECTION LABELS ═════════════════════════════════════════════════════ */
-.kv-section-label {
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--txt-soft);
-  margin-bottom: 14px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.kv-section-label::after {
+.kv-command-label::before {
   content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border);
+  width: 4px; height: 4px; border-radius: 50%; background: var(--gold);
+  animation: kv-pulse-gold 2s ease-in-out infinite; display: inline-block;
 }
 
-/* ═══ CHAT ═══════════════════════════════════════════════════════════════ */
-.kv-conv-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border);
+/* Input */
+[data-testid="stChatInputContainer"], .stChatInputContainer {
+  background: transparent !important; border-top: none !important;
+  padding: 0 44px 26px !important;
 }
-.kv-conv-title {
-  font-family: var(--serif);
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: var(--txt-muted);
-  letter-spacing: -0.01em;
-}
-.kv-conv-count {
-  font-size: 0.65rem;
-  color: var(--gold);
-  background: var(--gold-8);
-  border: 1px solid var(--gold-border);
-  border-radius: 2px;
-  padding: 2px 7px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-}
-
-[data-testid="stChatMessage"] {
-  background: transparent !important;
-  padding: 0 !important;
-  gap: 14px !important;
-  margin-bottom: 6px !important;
-  max-width: 860px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-/* User avatar */
-[data-testid="stChatMessageAvatarUser"] {
-  background: rgba(248,244,237,0.1) !important;
-  border: 1px solid rgba(248,244,237,0.15) !important;
-  border-radius: 4px !important;
-  width: 28px !important;
-  min-width: 28px !important;
-  height: 28px !important;
-  font-size: 0.7rem !important;
-  color: var(--cream) !important;
-}
-
-/* Assistant avatar */
-[data-testid="stChatMessageAvatarAssistant"] {
-  background: linear-gradient(135deg, var(--gold-lt) 0%, var(--gold) 100%) !important;
-  border-radius: 4px !important;
-  width: 28px !important;
-  min-width: 28px !important;
-  height: 28px !important;
-  font-size: 0.7rem !important;
-  color: var(--bg) !important;
-  box-shadow: 0 4px 12px rgba(184,151,94,0.25) !important;
-}
-
-/* User message */
-[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"])
-[data-testid="stChatMessageContent"] {
-  background: var(--cream) !important;
-  color: #0A0E1A !important;
-  border-radius: 2px 8px 8px 8px !important;
-  padding: 12px 17px !important;
-  font-size: 0.92rem !important;
-  line-height: 1.65 !important;
-  border: none !important;
-  box-shadow: 0 2px 16px -4px rgba(10,14,26,0.2) !important;
-  max-width: 78% !important;
-}
-
-/* Assistant message */
-[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"])
-[data-testid="stChatMessageContent"] {
+[data-testid="stChatInput"] > div, .stChatInput > div {
   background: var(--bg-2) !important;
-  color: var(--txt) !important;
-  border-radius: 8px 2px 8px 8px !important;
-  border: 1px solid var(--border) !important;
-  padding: 18px 22px !important;
-  font-size: 0.92rem !important;
-  line-height: 1.78 !important;
-  max-width: 90% !important;
-  box-shadow: var(--shadow) !important;
-}
-
-/* Message typography */
-[data-testid="stChatMessageContent"] p {
-  margin-bottom: 0.6em !important;
-  color: inherit !important;
-}
-[data-testid="stChatMessageContent"] p:last-child { margin-bottom: 0 !important; }
-
-[data-testid="stChatMessageContent"] h1,
-[data-testid="stChatMessageContent"] h2,
-[data-testid="stChatMessageContent"] h3 {
-  font-family: var(--serif) !important;
-  font-weight: 500 !important;
-  letter-spacing: -0.02em !important;
-  line-height: 1.2 !important;
-  margin: 1.1em 0 0.4em !important;
-}
-[data-testid="stChatMessageContent"] h2 {
-  font-size: 1.05rem !important;
-  color: var(--txt) !important;
-}
-[data-testid="stChatMessageContent"] h3 {
-  font-size: 0.95rem !important;
-  color: var(--gold-lt) !important;
-}
-
-[data-testid="stChatMessageContent"] strong {
-  color: var(--txt) !important;
-  font-weight: 600 !important;
-}
-
-[data-testid="stChatMessageContent"] em {
-  color: var(--gold-lt) !important;
-}
-
-[data-testid="stChatMessageContent"] ul,
-[data-testid="stChatMessageContent"] ol {
-  padding-left: 1.1em !important;
-  margin: 0.35em 0 0.5em !important;
-}
-[data-testid="stChatMessageContent"] li {
-  margin-bottom: 0.28em !important;
-  line-height: 1.6 !important;
-}
-
-[data-testid="stChatMessageContent"] code {
-  background: var(--gold-8) !important;
-  color: var(--gold-lt) !important;
-  border: 1px solid var(--gold-border) !important;
-  border-radius: 3px !important;
-  padding: 1px 5px !important;
-  font-size: 0.83em !important;
-}
-
-[data-testid="stChatMessageContent"] hr {
-  border: none !important;
-  border-top: 1px solid var(--border) !important;
-  margin: 1em 0 !important;
-}
-
-[data-testid="stChatMessageContent"] blockquote {
-  border-left: 2px solid var(--gold-border) !important;
-  padding-left: 14px !important;
-  color: var(--txt-muted) !important;
-  margin: 0.6em 0 !important;
-}
-
-/* User message text overrides */
-[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"])
-[data-testid="stChatMessageContent"] p,
-[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"])
-[data-testid="stChatMessageContent"] strong,
-[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"])
-[data-testid="stChatMessageContent"] h2,
-[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"])
-[data-testid="stChatMessageContent"] h3 {
-  color: #1A1F33 !important;
-}
-
-/* ═══ INPUT AREA ══════════════════════════════════════════════════════════ */
-[data-testid="stChatInputContainer"],
-.stChatInputContainer {
-  background: linear-gradient(to bottom, transparent, rgba(10,14,26,0.98) 38%) !important;
-  border-top: none !important;
-  padding: 20px 48px 28px !important;
-}
-
-/* Inner input wrapper */
-[data-testid="stChatInput"] > div,
-.stChatInput > div {
-  background: var(--bg-3) !important;
-  border: 1px solid var(--gold-border) !important;
+  border: 1px solid var(--gbr) !important;
   border-radius: 10px !important;
-  box-shadow: 0 0 0 1px rgba(184,151,94,0.04), var(--shadow) !important;
-  transition: border-color .2s var(--ease), box-shadow .2s var(--ease) !important;
+  box-shadow: 0 0 0 4px rgba(196,164,107,0.04), 0 0 70px -24px rgba(196,164,107,0.14), var(--sh) !important;
+  transition: border-color .25s var(--ease), box-shadow .25s var(--ease) !important;
 }
-[data-testid="stChatInput"] > div:focus-within,
-.stChatInput > div:focus-within {
-  border-color: rgba(184,151,94,0.42) !important;
-  box-shadow: 0 0 0 3px rgba(184,151,94,0.07), var(--shadow) !important;
+[data-testid="stChatInput"] > div:focus-within, .stChatInput > div:focus-within {
+  border-color: rgba(196,164,107,0.48) !important;
+  box-shadow: 0 0 0 5px rgba(196,164,107,0.07), 0 0 90px -20px rgba(196,164,107,0.22), var(--sh) !important;
 }
-
-[data-testid="stChatInput"] textarea,
-.stChatInput textarea {
-  background: transparent !important;
-  color: var(--txt) !important;
-  font-family: var(--sans) !important;
-  font-size: 0.935rem !important;
-  line-height: 1.6 !important;
-  padding: 16px 20px !important;
-  border: none !important;
-  box-shadow: none !important;
-  caret-color: var(--gold) !important;
-  resize: none !important;
+[data-testid="stChatInput"] textarea, .stChatInput textarea {
+  background: transparent !important; color: var(--txt) !important;
+  font-family: var(--sans) !important; font-size: 0.94rem !important;
+  line-height: 1.6 !important; padding: 16px 20px !important;
+  border: none !important; box-shadow: none !important; caret-color: var(--gold) !important;
 }
-[data-testid="stChatInput"] textarea::placeholder,
-.stChatInput textarea::placeholder {
-  color: var(--txt-soft) !important;
-  font-size: 0.9rem !important;
-}
-
-/* Submit button */
+[data-testid="stChatInput"] textarea::placeholder { color: var(--txt3) !important; font-size: 0.9rem !important; }
 [data-testid="stChatInputSubmitButton"] button {
-  background: var(--gold) !important;
-  border: none !important;
-  border-radius: 6px !important;
-  color: var(--bg) !important;
-  width: 36px !important;
-  height: 36px !important;
-  margin: 8px 10px !important;
-  transition: all .18s var(--ease) !important;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dk) 100%) !important;
+  border: none !important; border-radius: 6px !important; color: var(--bg) !important;
+  width: 36px !important; height: 36px !important; margin: 8px 10px !important;
+  box-shadow: 0 4px 12px rgba(196,164,107,0.25) !important;
+  transition: all .2s var(--ease) !important;
 }
 [data-testid="stChatInputSubmitButton"] button:hover {
-  background: var(--gold-lt) !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 14px rgba(184,151,94,0.3) !important;
+  background: linear-gradient(135deg, var(--gold-lt) 0%, var(--gold) 100%) !important;
+  transform: translateY(-1px) !important; box-shadow: 0 6px 20px rgba(196,164,107,0.35) !important;
 }
 
-/* ═══ BUTTONS (main area) ════════════════════════════════════════════════ */
-/* "Ouvrir" card CTAs */
-[data-testid="stMain"] [data-testid="stButton"] button,
-.main [data-testid="stButton"] button {
-  background: transparent !important;
-  color: var(--txt-muted) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 4px !important;
-  font-family: var(--sans) !important;
-  font-size: 0.72rem !important;
-  font-weight: 600 !important;
-  letter-spacing: 0.1em !important;
-  text-transform: uppercase !important;
-  padding: 8px 20px !important;
-  transition: all .2s var(--ease) !important;
+/* ── CONVERSATION ────────────────────────────────────────────────────────── */
+.kv-conv-head {
+  padding: 20px 0 15px; border-bottom: 1px solid var(--bd); margin-bottom: 18px;
+  display: flex; align-items: center; justify-content: space-between;
 }
-[data-testid="stMain"] [data-testid="stButton"] button:hover,
-.main [data-testid="stButton"] button:hover {
-  background: var(--gold-8) !important;
-  border-color: var(--gold-border) !important;
-  color: var(--gold) !important;
+.kv-conv-title { font-family: var(--serif); font-size: 0.88rem; font-weight: 300; color: var(--txt2); }
+.kv-conv-meta { display: flex; align-items: center; gap: 7px; }
+.kv-conv-badge { font-size: 0.6rem; color: var(--gold); background: var(--g8); border: 1px solid var(--gbr); border-radius: 2px; padding: 2px 7px; font-weight: 600; letter-spacing: 0.07em; }
+.kv-model-tag { font-size: 0.58rem; color: var(--txt3); border: 1px solid var(--bd); border-radius: 2px; padding: 2px 6px; letter-spacing: 0.04em; }
+
+[data-testid="stChatMessage"] {
+  background: transparent !important; padding: 0 !important;
+  gap: 12px !important; margin-bottom: 4px !important;
+  max-width: 820px; margin-left: auto; margin-right: auto;
+}
+[data-testid="stChatMessageAvatarUser"] {
+  background: rgba(237,231,212,0.07) !important; border: 1px solid rgba(237,231,212,0.11) !important;
+  border-radius: 4px !important; width: 26px !important; min-width: 26px !important; height: 26px !important;
+  color: var(--cream) !important; font-size: 0.64rem !important;
+}
+[data-testid="stChatMessageAvatarAssistant"] {
+  background: linear-gradient(135deg, var(--gold-lt) 0%, var(--gold-dk) 100%) !important;
+  border-radius: 4px !important; width: 26px !important; min-width: 26px !important; height: 26px !important;
+  color: var(--bg) !important; font-size: 0.64rem !important;
+  box-shadow: 0 4px 12px rgba(196,164,107,0.3) !important;
+}
+[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) [data-testid="stChatMessageContent"] {
+  background: var(--cream) !important; color: #070B17 !important;
+  border-radius: 2px 8px 8px 8px !important; padding: 11px 15px !important;
+  font-size: 0.9rem !important; line-height: 1.65 !important;
+  max-width: 74% !important; box-shadow: 0 2px 20px -4px rgba(0,0,0,0.4) !important;
+}
+[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) [data-testid="stChatMessageContent"] {
+  background: var(--bg-2) !important; color: var(--txt) !important;
+  border-radius: 8px 2px 8px 8px !important; border: 1px solid var(--bd) !important;
+  padding: 16px 20px !important; font-size: 0.9rem !important; line-height: 1.78 !important;
+  max-width: 88% !important; box-shadow: var(--sh) !important;
+}
+[data-testid="stChatMessageContent"] p { margin-bottom: 0.5em !important; color: inherit !important; }
+[data-testid="stChatMessageContent"] p:last-child { margin-bottom: 0 !important; }
+[data-testid="stChatMessageContent"] h2 { font-family: var(--serif) !important; font-size: 1.02rem !important; font-weight: 400 !important; color: var(--txt) !important; letter-spacing: -0.02em !important; margin: 1em 0 0.3em !important; }
+[data-testid="stChatMessageContent"] h3 { font-family: var(--serif) !important; font-size: 0.92rem !important; font-weight: 400 !important; color: var(--gold-lt) !important; margin: 0.8em 0 0.25em !important; }
+[data-testid="stChatMessageContent"] strong { color: var(--txt) !important; font-weight: 600 !important; }
+[data-testid="stChatMessageContent"] em { color: var(--gold-lt) !important; }
+[data-testid="stChatMessageContent"] ul, [data-testid="stChatMessageContent"] ol { padding-left: 1.1em !important; margin: 0.3em 0 0.45em !important; }
+[data-testid="stChatMessageContent"] li { margin-bottom: 0.25em !important; line-height: 1.6 !important; }
+[data-testid="stChatMessageContent"] code { background: var(--g8) !important; color: var(--gold-lt) !important; border: 1px solid var(--gbr) !important; border-radius: 3px !important; padding: 1px 5px !important; font-size: 0.82em !important; }
+[data-testid="stChatMessageContent"] blockquote { border-left: 2px solid var(--gbr) !important; padding-left: 12px !important; color: var(--txt2) !important; margin: 0.5em 0 !important; }
+[data-testid="stChatMessageContent"] hr { border: none !important; border-top: 1px solid var(--bd) !important; margin: 0.8em 0 !important; }
+[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) [data-testid="stChatMessageContent"] p,
+[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) [data-testid="stChatMessageContent"] strong { color: #070B17 !important; }
+
+/* ── MAIN BUTTONS ────────────────────────────────────────────────────────── */
+[data-testid="stMain"] [data-testid="stButton"] button, .main [data-testid="stButton"] button {
+  background: transparent !important; color: var(--txt2) !important;
+  border: 1px solid var(--bd) !important; border-radius: 4px !important;
+  font-family: var(--sans) !important; font-size: 0.69rem !important;
+  font-weight: 600 !important; letter-spacing: 0.1em !important;
+  text-transform: uppercase !important; padding: 8px 20px !important;
+  transition: all .18s var(--ease) !important;
+}
+[data-testid="stMain"] [data-testid="stButton"] button:hover, .main [data-testid="stButton"] button:hover {
+  background: var(--g8) !important; border-color: var(--gbr) !important; color: var(--gold) !important;
+}
+/* Pill buttons - second columns row */
+[data-testid="stColumns"] + [data-testid="stColumns"] [data-testid="stButton"] button {
+  background: var(--bg-2) !important; color: var(--txt2) !important;
+  border: 1px solid var(--bd) !important; border-radius: 6px !important;
+  font-size: 0.8rem !important; font-weight: 400 !important;
+  letter-spacing: 0.01em !important; text-transform: none !important;
+  padding: 9px 14px !important;
+}
+[data-testid="stColumns"] + [data-testid="stColumns"] [data-testid="stButton"] button:hover {
+  background: var(--g8) !important; border-color: var(--gbr) !important; color: var(--gold-lt) !important;
 }
 
-/* Pill buttons (compact secondary modules) */
-[data-testid="stColumns"]:last-of-type [data-testid="stButton"] button {
-  background: var(--bg-2) !important;
-  color: var(--txt-soft) !important;
-  border: 1px solid var(--border-2) !important;
-  border-radius: 6px !important;
-  font-size: 0.8rem !important;
-  font-weight: 500 !important;
-  letter-spacing: 0.02em !important;
-  text-transform: none !important;
-  padding: 9px 16px !important;
-}
-[data-testid="stColumns"]:last-of-type [data-testid="stButton"] button:hover {
-  background: var(--gold-8) !important;
-  border-color: var(--gold-border) !important;
-  color: var(--gold-lt) !important;
-}
+/* ── API KEY ─────────────────────────────────────────────────────────────── */
+[data-testid="stExpander"] { background: var(--bg-2) !important; border: 1px solid var(--bd) !important; border-radius: 6px !important; }
+[data-testid="stExpander"] summary { color: var(--txt2) !important; font-size: 0.82rem !important; }
+[data-testid="stTextInput"] input { background: var(--bg-3) !important; color: var(--txt) !important; border: 1px solid var(--bd) !important; border-radius: 4px !important; font-size: 0.9rem !important; caret-color: var(--gold) !important; }
+[data-testid="stTextInput"] input:focus { border-color: var(--gbr) !important; box-shadow: 0 0 0 2px rgba(196,164,107,0.06) !important; outline: none !important; }
+[data-testid="stTextInput"] label { color: var(--txt2) !important; font-size: 0.78rem !important; }
+[data-testid="stAlert"] { background: var(--g8) !important; border: 1px solid var(--gbr) !important; border-radius: 5px !important; color: var(--txt) !important; font-size: 0.85rem !important; }
 
-/* ═══ API KEY ═════════════════════════════════════════════════════════════ */
-[data-testid="stExpander"] {
-  background: var(--bg-2) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 6px !important;
-}
-[data-testid="stExpander"] summary {
-  color: var(--txt-muted) !important;
-  font-size: 0.82rem !important;
-  font-family: var(--sans) !important;
-  padding: 12px 16px !important;
-}
-[data-testid="stTextInput"] input {
-  background: var(--bg-3) !important;
-  color: var(--txt) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 4px !important;
-  font-family: var(--sans) !important;
-  font-size: 0.9rem !important;
-  caret-color: var(--gold) !important;
-  padding: 10px 14px !important;
-}
-[data-testid="stTextInput"] input:focus {
-  border-color: var(--gold-border) !important;
-  box-shadow: 0 0 0 2px rgba(184,151,94,0.07) !important;
-  outline: none !important;
-}
-[data-testid="stTextInput"] label {
-  color: var(--txt-muted) !important;
-  font-size: 0.78rem !important;
-  font-weight: 500 !important;
-}
+/* ── COLUMNS ─────────────────────────────────────────────────────────────── */
+[data-testid="stColumns"] { gap: 12px !important; align-items: stretch !important; }
 
-/* Info/error */
-[data-testid="stAlert"] {
-  background: var(--gold-8) !important;
-  border: 1px solid var(--gold-border) !important;
-  border-radius: 5px !important;
-  color: var(--txt) !important;
-  font-size: 0.88rem !important;
-}
-
-/* ═══ COLUMNS ════════════════════════════════════════════════════════════ */
-[data-testid="stColumns"] {
-  gap: 12px !important;
-}
-
-/* ═══ ANIMATIONS ══════════════════════════════════════════════════════════ */
-@keyframes kv-blink {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.15; }
-}
-@keyframes kv-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.6; transform: scale(0.85); }
-}
-@keyframes kv-fade-up {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
+/* ── ANIMATIONS ──────────────────────────────────────────────────────────── */
+@keyframes kv-fade-up { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+@keyframes kv-fade-in { from { opacity:0; } to { opacity:1; } }
+@keyframes kv-pulse-gold { 0%,100%{opacity:1;box-shadow:0 0 8px rgba(196,164,107,0.4);} 50%{opacity:0.45;box-shadow:0 0 2px rgba(196,164,107,0.1);} }
+@keyframes kv-pulse-green { 0%,100%{opacity:1;box-shadow:0 0 8px rgba(74,222,128,0.55);} 50%{opacity:0.55;box-shadow:0 0 3px rgba(74,222,128,0.15);} }
+@keyframes kv-blink { 0%,100%{opacity:1;} 50%{opacity:0.1;} }
 .kv-cursor {
-  display: inline-block;
-  width: 2px;
-  height: 0.88em;
-  background: var(--gold);
-  margin-left: 1px;
-  border-radius: 1px;
-  animation: kv-blink 1.1s var(--ease) infinite;
+  display: inline-block; width: 2px; height: 0.84em; background: var(--gold);
+  margin-left: 1px; border-radius: 1px; animation: kv-blink 1s var(--ease) infinite;
   vertical-align: text-bottom;
 }
 
-.kv-fade-up {
-  animation: kv-fade-up .3s var(--ease) both;
+/* Stagger for cards */
+.kv-module:nth-child(1){animation-delay:.0s;}
+.kv-module:nth-child(2){animation-delay:.08s;}
+.kv-module:nth-child(3){animation-delay:.16s;}
+
+/* ── RESPONSIVE ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .block-container,[data-testid="stAppViewBlockContainer"] { padding: 0 18px 20px !important; }
+  [data-testid="stChatInputContainer"],.stChatInputContainer { padding: 0 18px 18px !important; }
+  .kv-hero { padding: 28px 0 24px; }
+  .kv-hero-title { font-size: 1.7rem !important; }
+  .kv-metrics { flex-wrap: wrap; }
+  .kv-metric { flex: 1 0 45%; }
+  .kv-chips { gap: 6px; }
+  .kv-command-bar { padding: 10px 18px 4px; }
 }
 
 </style>
 """
 
-# ── System prompt ─────────────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════════════
+# DATA
+# ══════════════════════════════════════════════════════════════════════════════
 SYSTEM_PROMPT = """Tu es K-VEFA AI, un copilote IA spécialisé dans :
 - la commercialisation VEFA,
 - le marketing immobilier neuf,
@@ -881,21 +551,35 @@ TOOLS = [
     {"type": "web_fetch_20260209", "name": "web_fetch"},
 ]
 
-# ── Module definitions ────────────────────────────────────────────────────────
 MODULES = [
     {
-        "icon": "✦", "cat": "CONTENU", "title": "Création de contenu",
-        "desc": "Posts LinkedIn, captions Instagram, scripts Reels, emails",
+        "icon": "✦",
+        "cat": "CONTENU",
+        "title": "Création de contenu",
+        "desc": "Posts LinkedIn, captions Instagram, scripts Reels, newsletters",
+        "preview": "« 5 raisons pour lesquelles les délais VEFA sont une opportunité… »",
+        "usage": "Format professionnel · Multi-réseaux",
+        "img": "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=72&auto=format&fit=crop&crop=top",
         "prompt": "Crée un post LinkedIn premium sur les délais de livraison VEFA et la communication des promoteurs",
     },
     {
-        "icon": "◈", "cat": "PROSPECTION", "title": "Prospection B2B",
+        "icon": "◈",
+        "cat": "PROSPECTION",
+        "title": "Prospection B2B",
         "desc": "DM LinkedIn, emails froids, séquences de relance personnalisées",
+        "preview": "« Bonjour [Prénom], j'ai analysé votre lancement du programme… »",
+        "usage": "Ciblage précis · Ton naturel",
+        "img": "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600&q=72&auto=format&fit=crop",
         "prompt": "Génère un DM LinkedIn percutant pour prospecter un directeur marketing de promoteur immobilier",
     },
     {
-        "icon": "◎", "cat": "ANALYSE", "title": "Audit promoteur",
-        "desc": "Score digital /100, forces, faiblesses, angles d'approche",
+        "icon": "◎",
+        "cat": "ANALYSE",
+        "title": "Audit promoteur",
+        "desc": "Score digital /100, forces, faiblesses, angles d'approche précis",
+        "preview": "« Score global : 61/100 · Point faible majeur : réseaux sociaux… »",
+        "usage": "Score /100 · Quick wins",
+        "img": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=72&auto=format&fit=crop&crop=top",
         "prompt": "Analyse la présence digitale de Nexity et génère un audit complet avec score et angle de prospection",
     },
     {
@@ -911,36 +595,40 @@ MODULES = [
     {
         "icon": "◉", "cat": "VEILLE", "title": "Veille & Opportunités",
         "desc": "Tendances marché, signaux faibles, opportunités commerciales",
-        "prompt": "Analyse les tendances du marché immobilier neuf en France et identifie les opportunités commerciales pour une agence marketing VEFA",
+        "prompt": "Analyse les tendances du marché immobilier neuf en France et identifie les opportunités commerciales",
     },
 ]
 
 NAV_ITEMS = [
-    ("✦", "Contenu"),
-    ("◈", "Prospection"),
-    ("◎", "Analyse"),
-    ("⊞", "Repurposing"),
-    ("◇", "Idéation"),
-    ("◉", "Veille"),
+    ("✦", "Contenu"), ("◈", "Prospection"), ("◎", "Analyse"),
+    ("⊞", "Repurposing"), ("◇", "Idéation"), ("◉", "Veille"),
 ]
 
-QUICK_ACTIONS = [
-    "Post LinkedIn sur les délais VEFA",
-    "DM de prospection Nexity",
-    "Audit d'un site promoteur",
-    "10 hooks réservation VEFA",
+CHIPS = [
+    ("✍", "Post LinkedIn sur les délais VEFA"),
+    ("🏢", "Audit digital d'un promoteur"),
+    ("◈", "DM de prospection Nexity"),
+    ("⚡", "10 hooks réservation VEFA"),
+    ("↔", "Décliner un sujet en 6 formats"),
 ]
 
-# ── API key ───────────────────────────────────────────────────────────────────
+ACTIVITY = [
+    ("Post LinkedIn — Délais VEFA", "Il y a 2h"),
+    ("Audit Bouygues Immo — Score 74/100", "Il y a 5h"),
+    ("DM LinkedIn — Directeur marketing", "Hier"),
+    ("10 hooks — leads immobilier neuf", "Il y a 2j"),
+]
+
+# ══════════════════════════════════════════════════════════════════════════════
+# INIT
+# ══════════════════════════════════════════════════════════════════════════════
 api_key = st.secrets.get("ANTHROPIC_API_KEY", "") if hasattr(st, "secrets") else ""
 if not api_key:
     api_key = os.environ.get("ANTHROPIC_API_KEY", "")
 
-# ── Session state ─────────────────────────────────────────────────────────────
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# ── Inject CSS ────────────────────────────────────────────────────────────────
 st.html(CSS)
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -948,16 +636,19 @@ st.html(CSS)
 # ══════════════════════════════════════════════════════════════════════════════
 with st.sidebar:
 
-    # Logo
+    # Logo + AI status
     st.markdown("""
-    <div class="kv-sidebar-logo">
-      <div class="kv-logotype">K<em>—</em>VEFA<span class="kv-badge">AI</span></div>
-      <div class="kv-sidebar-sub">Intelligence Immobilière</div>
+    <div class="kv-logo-wrap">
+      <div class="kv-logotype">K<em>—</em>VEFA<span class="kv-logotype-badge">AI</span></div>
+      <div class="kv-ai-status">
+        <span class="kv-status-ring"></span>
+        <span class="kv-status-label">Opus 4.7 · Actif</span>
+      </div>
     </div>
     """, unsafe_allow_html=True)
 
     # Navigation
-    st.markdown('<div class="kv-nav-section">Modules</div>', unsafe_allow_html=True)
+    st.markdown('<div class="kv-nav-label">Modules</div>', unsafe_allow_html=True)
 
     for icon, label in NAV_ITEMS:
         if st.button(f"{icon}  {label}", key=f"nav_{label}", use_container_width=True):
@@ -966,136 +657,177 @@ with st.sidebar:
                 st.session_state.messages.append({"role": "user", "content": mod["prompt"]})
                 st.rerun()
 
-    st.markdown('<div class="kv-sidebar-divider"></div>', unsafe_allow_html=True)
+    st.markdown('<div class="kv-div"></div>', unsafe_allow_html=True)
 
-    # Quick actions
-    st.markdown('<div class="kv-nav-section">Accès rapide</div>', unsafe_allow_html=True)
+    # Activity feed
+    act_rows = "".join([
+        f"""<div class="kv-act-row">
+          <div class="kv-act-dot"></div>
+          <div><div class="kv-act-main">{text}</div><span class="kv-act-time">{time}</span></div>
+        </div>"""
+        for text, time in ACTIVITY
+    ])
+    st.markdown(f"""
+    <div class="kv-activity">
+      <div class="kv-widget-head">Activité récente</div>
+      {act_rows}
+    </div>
+    """, unsafe_allow_html=True)
 
-    for qa in QUICK_ACTIONS:
-        label_short = qa[:32] + ("…" if len(qa) > 32 else "")
-        if st.button(f"→  {label_short}", key=f"qa_{qa[:8]}", use_container_width=True):
-            st.session_state.messages.append({"role": "user", "content": qa})
-            st.rerun()
+    # Market insight
+    st.markdown("""
+    <div class="kv-insight">
+      <div class="kv-insight-head">Marché VEFA · France</div>
+      <div class="kv-insight-val">+12 % leads Q1</div>
+      <div class="kv-insight-delta">↑ vs. trimestre précédent</div>
+    </div>
+    """, unsafe_allow_html=True)
 
-    st.markdown('<div class="kv-sidebar-divider"></div>', unsafe_allow_html=True)
+    # Model badge
+    st.markdown("""
+    <div class="kv-model-strip">
+      <div class="kv-model-dot"></div>
+      <div class="kv-model-name">claude-opus-4-7 · Cache actif · &lt;2s</div>
+    </div>
+    """, unsafe_allow_html=True)
 
-    # Session info
+    # Session / reset
     if st.session_state.messages:
-        msg_count = len([m for m in st.session_state.messages if m["role"] == "user"])
+        n = len([m for m in st.session_state.messages if m["role"] == "user"])
         st.markdown(f"""
-        <div class="kv-sidebar-status">
-          <div><span class="kv-status-dot"></span><span class="kv-status-text">Session active</span></div>
-          <div class="kv-status-sub">{msg_count} échange{"s" if msg_count > 1 else ""}</div>
+        <div class="kv-session">
+          <div class="kv-session-row">
+            <span class="kv-session-dot"></span>
+            <span class="kv-session-label">Session active</span>
+          </div>
+          <div class="kv-session-sub">{n} échange{"s" if n > 1 else ""} · En cours</div>
         </div>
         """, unsafe_allow_html=True)
-
-        if st.button("↺  Nouvelle conversation", key="sidebar_reset", use_container_width=True):
+        if st.button("↺  Nouvelle conversation", key="reset", use_container_width=True):
             st.session_state.messages = []
             st.rerun()
-    else:
-        st.markdown("""
-        <div class="kv-sidebar-status">
-          <div><span class="kv-status-dot"></span><span class="kv-status-text">Prêt</span></div>
-          <div class="kv-status-sub">Sélectionnez un module</div>
-        </div>
-        """, unsafe_allow_html=True)
 
-    # API key if needed
+    # API key (if missing)
     if not api_key:
-        st.markdown('<div class="kv-sidebar-divider"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="kv-div"></div>', unsafe_allow_html=True)
         with st.expander("🔑 Clé API", expanded=True):
-            api_key = st.text_input(
-                "Clé Anthropic",
-                type="password",
-                placeholder="sk-ant-...",
-            )
+            api_key = st.text_input("Clé Anthropic", type="password", placeholder="sk-ant-...")
 
 # ══════════════════════════════════════════════════════════════════════════════
-# MAIN CONTENT
+# MAIN
 # ══════════════════════════════════════════════════════════════════════════════
-
 if not api_key:
     st.markdown("""
-    <div style="text-align:center; padding: 80px 0; color: rgba(232,226,213,0.4); font-size: 0.85rem;">
-      Configurez votre clé API dans la sidebar pour accéder à K—VEFA Intelligence.
+    <div style="text-align:center;padding:100px 0;color:rgba(216,208,188,0.3);font-size:0.85rem;">
+      Configurez votre clé API dans la barre latérale pour accéder à K—VEFA Intelligence.
     </div>
     """, unsafe_allow_html=True)
     st.stop()
 
-# ── No messages: welcome + module grid ───────────────────────────────────────
+# ── Welcome ─────────────────────────────────────────────────────────────────
 if not st.session_state.messages:
 
-    # Top bar
+    # Hero
     st.markdown("""
-    <div class="kv-topbar">
-      <div class="kv-topbar-left">
-        <div class="kv-breadcrumb">K—VEFA <span>›</span> Tableau de bord</div>
+    <div class="kv-hero">
+      <div class="kv-hero-deco"></div>
+      <div class="kv-hero-deco-2"></div>
+      <div class="kv-hero-label">Intelligence VEFA</div>
+      <div class="kv-hero-title">
+        Votre centre de commande<br><em>immobilier premium</em>
+      </div>
+      <div class="kv-hero-sub">
+        L'IA spécialisée VEFA qui prospecte, analyse et crée du contenu<br>
+        en quelques secondes — sans formation, sans friction.
+      </div>
+      <div class="kv-metrics">
+        <div class="kv-metric"><div class="kv-metric-val">3–5h</div><div class="kv-metric-lbl">Gagnées / semaine</div></div>
+        <div class="kv-metric"><div class="kv-metric-val">+38%</div><div class="kv-metric-lbl">Taux de réponse</div></div>
+        <div class="kv-metric"><div class="kv-metric-val">&lt;60s</div><div class="kv-metric-lbl">Génération moy.</div></div>
+        <div class="kv-metric"><div class="kv-metric-val">Opus 4.7</div><div class="kv-metric-lbl">Modèle IA</div></div>
       </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # Welcome
-    st.markdown("""
-    <div class="kv-welcome kv-fade-up">
-      <div class="kv-welcome-label">Intelligence VEFA</div>
-      <div class="kv-welcome-title">Que souhaitez-vous<br>accomplir <em>aujourd'hui</em> ?</div>
-      <div class="kv-welcome-sub">
-        Sélectionnez un module ou décrivez directement votre besoin.<br>
-        L'agent détecte automatiquement le mode adapté.
-      </div>
-    </div>
-    """, unsafe_allow_html=True)
+    # Module cards (top 3)
+    st.markdown('<div class="kv-section-label">Modules principaux</div>', unsafe_allow_html=True)
 
-    # Module grid — 3 cards (single row, no scroll needed)
-    st.markdown('<div class="kv-section-label">Modules disponibles</div>', unsafe_allow_html=True)
-
-    col1, col2, col3 = st.columns(3, gap="small")
-    for i, (col, mod) in enumerate(zip([col1, col2, col3], MODULES[:3])):
+    c1, c2, c3 = st.columns(3, gap="small")
+    for col, mod in zip([c1, c2, c3], MODULES[:3]):
         with col:
             st.markdown(f"""
             <div class="kv-module">
-              <div class="kv-module-icon">{mod["icon"]}</div>
-              <div class="kv-module-cat">{mod["cat"]}</div>
-              <div class="kv-module-title">{mod["title"]}</div>
-              <div class="kv-module-desc">{mod["desc"]}</div>
-              <div class="kv-module-arrow">Démarrer →</div>
+              <div class="kv-module-img-wrap">
+                <img class="kv-module-img" src="{mod['img']}" alt="{mod['title']}" loading="lazy">
+                <div class="kv-module-img-overlay"></div>
+                <div class="kv-module-img-cat">{mod['cat']}</div>
+              </div>
+              <div class="kv-module-body">
+                <div class="kv-module-title">{mod['title']}</div>
+                <div class="kv-module-desc">{mod['desc']}</div>
+                <div class="kv-preview">
+                  <span class="kv-preview-tag">Aperçu IA</span>
+                  <div class="kv-preview-text">{mod['preview']}</div>
+                </div>
+                <div class="kv-module-foot">
+                  <div class="kv-module-arrow">Démarrer →</div>
+                  <div class="kv-module-usage">{mod['usage']}</div>
+                </div>
+              </div>
             </div>
             """, unsafe_allow_html=True)
-            if st.button("Ouvrir", key=f"mod_{i}", use_container_width=True):
+            if st.button("Ouvrir", key=f"mod_{mod['cat']}", use_container_width=True):
                 st.session_state.messages.append({"role": "user", "content": mod["prompt"]})
                 st.rerun()
 
-    # 3 extra modules as compact suggestion pills
-    st.markdown("<div style='height:18px'></div>", unsafe_allow_html=True)
-    c1, c2, c3 = st.columns(3, gap="small")
-    for i, (col, mod) in enumerate(zip([c1, c2, c3], MODULES[3:])):
+    # Secondary modules as pills
+    st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
+    p1, p2, p3 = st.columns(3, gap="small")
+    for col, mod in zip([p1, p2, p3], MODULES[3:]):
         with col:
-            if st.button(f"{mod['icon']}  {mod['title']}", key=f"pill_{i}", use_container_width=True):
+            if st.button(f"{mod['icon']}  {mod['title']}", key=f"pill_{mod['cat']}", use_container_width=True):
                 st.session_state.messages.append({"role": "user", "content": mod["prompt"]})
                 st.rerun()
 
-# ── Conversation ──────────────────────────────────────────────────────────────
+    # Chip prompts label
+    st.markdown('<div class="kv-section-label" style="margin-top:22px">Suggestions rapides</div>', unsafe_allow_html=True)
+
+# ── Conversation ─────────────────────────────────────────────────────────────
 else:
-
-    msg_count = len([m for m in st.session_state.messages if m["role"] == "user"])
-
-    # Top bar
+    n = len([m for m in st.session_state.messages if m["role"] == "user"])
     st.markdown(f"""
-    <div class="kv-topbar">
-      <div class="kv-topbar-left">
-        <div class="kv-breadcrumb">K—VEFA <span>›</span> Conversation</div>
-        <div class="kv-conv-count">{msg_count} échange{"s" if msg_count > 1 else ""}</div>
+    <div class="kv-conv-head">
+      <div class="kv-conv-title">Conversation active</div>
+      <div class="kv-conv-meta">
+        <span class="kv-conv-badge">{n} échange{"s" if n > 1 else ""}</span>
+        <span class="kv-model-tag">opus-4-7</span>
       </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # Messages
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
-# ── Input ─────────────────────────────────────────────────────────────────────
-prompt = st.chat_input("Décrivez votre besoin VEFA — contenu, prospection, analyse…")
+# ── AI Command Center label ──────────────────────────────────────────────────
+if not st.session_state.messages:
+    # Chip buttons (5 suggestions)
+    kc1, kc2, kc3, kc4, kc5 = st.columns(5, gap="small")
+    for col, (icon, label) in zip([kc1, kc2, kc3, kc4, kc5], CHIPS):
+        with col:
+            if st.button(f"{icon}  {label[:26]}{'…' if len(label)>26 else ''}", key=f"chip_{label[:8]}", use_container_width=True):
+                st.session_state.messages.append({"role": "user", "content": label})
+                st.rerun()
+    st.markdown("<div style='height:4px'></div>", unsafe_allow_html=True)
+
+st.html("""
+<div class="kv-command-bar">
+  <div class="kv-command-label">Commande IA</div>
+</div>
+""")
+
+# ── Input ────────────────────────────────────────────────────────────────────
+prompt = st.chat_input("Décrivez votre besoin VEFA — contenu, prospection, analyse, hooks…")
 
 if prompt:
     st.session_state.messages.append({"role": "user", "content": prompt})
@@ -1112,39 +844,26 @@ if prompt:
             with client.messages.stream(
                 model="claude-opus-4-7",
                 max_tokens=8192,
-                system=[
-                    {
-                        "type": "text",
-                        "text": SYSTEM_PROMPT,
-                        "cache_control": {"type": "ephemeral"},
-                    }
-                ],
+                system=[{"type": "text", "text": SYSTEM_PROMPT, "cache_control": {"type": "ephemeral"}}],
                 tools=TOOLS,
-                messages=st.session_state.messages,
+                messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages],
             ) as stream:
-                for event in stream:
-                    if (
-                        event.type == "content_block_delta"
-                        and event.delta.type == "text_delta"
-                    ):
-                        full_response += event.delta.text
-                        placeholder.markdown(
-                            full_response + '<span class="kv-cursor"></span>',
-                            unsafe_allow_html=True,
-                        )
-                final = stream.get_final_message()
-
-            if not full_response:
-                for block in final.content:
-                    if block.type == "text":
-                        full_response += block.text
+                for text in stream.text_stream:
+                    full_response += text
+                    placeholder.markdown(
+                        full_response + '<span class="kv-cursor"></span>',
+                        unsafe_allow_html=True,
+                    )
 
             placeholder.markdown(full_response)
-            st.session_state.messages.append(
-                {"role": "assistant", "content": full_response}
-            )
+            st.session_state.messages.append({"role": "assistant", "content": full_response})
 
-        except anthropic.AuthenticationError:
-            placeholder.error("Clé API invalide. Vérifiez votre clé Anthropic.")
         except Exception as e:
-            placeholder.error(f"Erreur : {e}")
+            err = str(e)
+            if "credit" in err.lower() or "balance" in err.lower():
+                placeholder.error("Solde Anthropic insuffisant. Rechargez votre compte sur console.anthropic.com")
+            elif "api_key" in err.lower() or "auth" in err.lower():
+                placeholder.error("Clé API invalide. Vérifiez la configuration dans la sidebar.")
+            else:
+                placeholder.error(f"Erreur : {err}")
+    st.rerun()
