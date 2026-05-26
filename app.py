@@ -900,7 +900,7 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 # ── Inject CSS ────────────────────────────────────────────────────────────────
-st.markdown(CSS, unsafe_allow_html=True)
+st.html(CSS)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SIDEBAR
