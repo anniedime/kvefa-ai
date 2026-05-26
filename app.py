@@ -102,8 +102,9 @@ html, body {
 
 /* ═══ LAYOUT ══════════════════════════════════════════════════════════════ */
 .block-container {
-  padding: 0 40px 100px !important;
+  padding: 0 40px 120px !important;
   max-width: 100% !important;
+  min-height: calc(100vh - 80px) !important;
   position: relative;
   z-index: 1;
 }
@@ -600,38 +601,42 @@ html, body {
 }
 
 /* ═══ INPUT AREA ══════════════════════════════════════════════════════════ */
+[data-testid="stChatInputContainer"],
 .stChatInputContainer {
-  background: linear-gradient(180deg, transparent 0%, var(--bg) 30%) !important;
+  background: linear-gradient(to bottom, transparent, rgba(10,14,26,0.98) 38%) !important;
   border-top: none !important;
-  padding: 12px 0 16px !important;
+  padding: 20px 48px 28px !important;
 }
 
-/* Input wrapper styling */
+/* Inner input wrapper */
+[data-testid="stChatInput"] > div,
 .stChatInput > div {
-  background: var(--bg-2) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 8px !important;
+  background: var(--bg-3) !important;
+  border: 1px solid var(--gold-border) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 0 0 1px rgba(184,151,94,0.04), var(--shadow) !important;
   transition: border-color .2s var(--ease), box-shadow .2s var(--ease) !important;
-  max-width: 860px !important;
-  margin: 0 auto !important;
 }
+[data-testid="stChatInput"] > div:focus-within,
 .stChatInput > div:focus-within {
-  border-color: rgba(184,151,94,0.38) !important;
-  box-shadow: 0 0 0 3px rgba(184,151,94,0.06), var(--shadow) !important;
+  border-color: rgba(184,151,94,0.42) !important;
+  box-shadow: 0 0 0 3px rgba(184,151,94,0.07), var(--shadow) !important;
 }
 
+[data-testid="stChatInput"] textarea,
 .stChatInput textarea {
   background: transparent !important;
   color: var(--txt) !important;
   font-family: var(--sans) !important;
   font-size: 0.935rem !important;
   line-height: 1.6 !important;
-  padding: 14px 18px !important;
+  padding: 16px 20px !important;
   border: none !important;
   box-shadow: none !important;
   caret-color: var(--gold) !important;
   resize: none !important;
 }
+[data-testid="stChatInput"] textarea::placeholder,
 .stChatInput textarea::placeholder {
   color: var(--txt-soft) !important;
   font-size: 0.9rem !important;
@@ -641,16 +646,17 @@ html, body {
 [data-testid="stChatInputSubmitButton"] button {
   background: var(--gold) !important;
   border: none !important;
-  border-radius: 5px !important;
+  border-radius: 6px !important;
   color: var(--bg) !important;
-  width: 34px !important;
-  height: 34px !important;
+  width: 36px !important;
+  height: 36px !important;
+  margin: 8px 10px !important;
   transition: all .18s var(--ease) !important;
 }
 [data-testid="stChatInputSubmitButton"] button:hover {
-  background: var(--gold-dk) !important;
+  background: var(--gold-lt) !important;
   transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px rgba(184,151,94,0.3) !important;
+  box-shadow: 0 4px 14px rgba(184,151,94,0.3) !important;
 }
 
 /* ═══ BUTTONS (main area) ════════════════════════════════════════════════ */
