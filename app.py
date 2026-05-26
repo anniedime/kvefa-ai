@@ -174,24 +174,36 @@ section[data-testid="stMain"], .main {
   border-right: 1px solid var(--bd) !important;
   min-width: 240px !important; max-width: 260px !important;
 }
+[data-testid="stSidebar"] { height: 100vh !important; }
 [data-testid="stSidebarContent"] {
   padding: 0 !important; background: transparent !important;
   display: flex !important; flex-direction: column !important;
-  min-height: 100vh !important;
+  height: 100vh !important;
 }
 
-.kv-logo-wrap { padding: 26px 22px 20px; }
+.kv-logo-wrap { padding: 30px 24px 22px; }
 .kv-logotype {
   font-family: var(--serif); font-size: 1.5rem; font-weight: 400;
-  color: var(--txt); letter-spacing: -0.03em; line-height: 1;
-  display: flex; align-items: center; margin-bottom: 10px;
+  color: var(--txt); letter-spacing: -0.025em; line-height: 1;
+  display: flex; align-items: center; margin-bottom: 12px;
 }
-.kv-logotype em { color: var(--gold); font-style: normal; margin: 0 1px; }
+/* Tiret discret entre K et VEFA — en-dash réduit, plus aéré */
+.kv-logotype em {
+  color: var(--gold);
+  font-style: normal;
+  font-weight: 300;
+  font-size: 0.62em;
+  opacity: 0.7;
+  margin: 0 0.18em;
+  position: relative;
+  top: -0.12em;
+  letter-spacing: 0;
+}
 .kv-logotype-badge {
   display: inline-flex; align-items: center;
   font-size: 0.5rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
   color: var(--bg); background: var(--gold); border-radius: 3px;
-  padding: 2px 6px; margin-left: 8px; position: relative; top: -2px;
+  padding: 2px 6px; margin-left: 10px; position: relative; top: -2px;
 }
 .kv-ai-status { display: flex; align-items: center; gap: 7px; }
 .kv-status-ring {
@@ -219,9 +231,9 @@ section[data-testid="stMain"], .main {
   border: none !important;
   color: var(--txt2) !important;
   font-family: var(--sans) !important;
-  font-size: 0.875rem !important;
+  font-size: 0.88rem !important;
   font-weight: 400 !important;
-  padding: 11px 22px !important;
+  padding: 14px 24px !important;
   margin: 0 !important;
   border-radius: 0 !important;
   width: 100% !important;
@@ -230,7 +242,7 @@ section[data-testid="stMain"], .main {
   text-transform: none !important;
   transition: background .15s var(--ease), color .15s var(--ease), border-color .15s var(--ease) !important;
   line-height: 1.2 !important;
-  min-height: 40px !important;
+  min-height: 44px !important;
 }
 [data-testid="stSidebar"] [data-testid="stButton"] button > div,
 [data-testid="stSidebar"] [data-testid="stButton"] button p,
@@ -286,18 +298,43 @@ section[data-testid="stMain"], .main {
 /* Espacement nav <-> profil */
 .kv-nav-wrap { padding: 4px 0 0; }
 
-.kv-sidebar-spacer { flex: 1 1 auto; }
+/* Le stVerticalBlock interne doit aussi être flex column 100% — sinon le
+   spacer ne sait pas sur quoi grandir. */
+[data-testid="stSidebar"] section[data-testid="stSidebarContent"] > div:first-child,
+[data-testid="stSidebar"] section[data-testid="stSidebarContent"] > [data-testid="stVerticalBlock"] {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  min-height: 100vh !important;
+}
 
-/* User profile bottom */
+/* Spacer — pousse le profil en bas */
+.kv-sidebar-spacer { flex: 1 1 auto; min-height: 220px; }
+[data-testid="stSidebar"] [data-testid="stElementContainer"]:has(.kv-sidebar-spacer) {
+  flex: 1 1 auto !important;
+  min-height: 220px !important;
+}
+
+/* Séparateur subtil au-dessus du profil */
+.kv-user-divider {
+  height: 1px;
+  background: var(--bd);
+  margin: 0 22px 18px;
+  opacity: 0.7;
+}
+
+/* User profile bottom — ancré naturellement en bas */
 .kv-user {
-  margin: 0 14px 18px;
-  padding: 12px 14px;
+  margin: 0 16px 22px;
+  padding: 13px 14px;
   background: var(--bg-3);
   border: 1px solid var(--bd);
-  border-radius: 8px;
-  display: flex; align-items: center; gap: 11px;
-  cursor: pointer; transition: border-color .2s var(--ease);
+  border-radius: 10px;
+  display: flex; align-items: center; gap: 12px;
+  cursor: pointer; transition: border-color .2s var(--ease), background .2s var(--ease);
 }
+.kv-user:hover { background: rgba(196,164,107,0.04); }
 .kv-user:hover { border-color: var(--gbr); }
 .kv-user-avatar {
   width: 32px; height: 32px; border-radius: 50%;
@@ -870,7 +907,8 @@ with st.sidebar:
         with st.expander("🔑 Clé API", expanded=True):
             api_key = st.text_input("Clé Anthropic", type="password", placeholder="sk-ant-...", label_visibility="collapsed")
 
-    # User profile en bas
+    # Divider subtil + profil ancré en bas
+    st.markdown('<div class="kv-user-divider"></div>', unsafe_allow_html=True)
     st.markdown("""
     <div class="kv-user">
       <div class="kv-user-avatar">K</div>
