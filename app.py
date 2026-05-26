@@ -1064,8 +1064,7 @@ else:
 
     # Messages
     for msg in st.session_state.messages:
-        avatar = "◇" if msg["role"] == "user" else "◆"
-        with st.chat_message(msg["role"], avatar=avatar):
+        with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
 # ── Input ─────────────────────────────────────────────────────────────────────
@@ -1073,10 +1072,10 @@ prompt = st.chat_input("Décrivez votre besoin VEFA — contenu, prospection, an
 
 if prompt:
     st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user", avatar="◇"):
+    with st.chat_message("user"):
         st.markdown(prompt)
 
-    with st.chat_message("assistant", avatar="◆"):
+    with st.chat_message("assistant"):
         placeholder = st.empty()
         full_response = ""
 
