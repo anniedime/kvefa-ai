@@ -355,17 +355,67 @@ section[data-testid="stMain"], .main {
 .kv-module:hover .kv-module-arrow { letter-spacing: 0.12em; }
 .kv-module-usage { font-size: 0.58rem; color: var(--txt3); letter-spacing: 0.04em; }
 
-/* ── CHIP PROMPTS ────────────────────────────────────────────────────────── */
-.kv-chips { display: flex; flex-wrap: wrap; gap: 7px; margin: 20px 0 12px; animation: kv-fade-up 0.55s var(--eout) 0.2s both; }
+/* ── CHIPS — CTAs primaires ──────────────────────────────────────────────── */
+.kv-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }
 .kv-chip {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 6px 13px; background: var(--bg-2);
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 15px; background: var(--bg-2);
   border: 1px solid var(--bd); border-radius: 100px;
-  font-size: 0.76rem; color: var(--txt2);
+  font-size: 0.78rem; color: var(--txt2);
   cursor: pointer; white-space: nowrap;
   transition: all .18s var(--ease);
 }
 .kv-chip:hover { background: var(--g8); border-color: var(--gbr); color: var(--gold-lt); transform: translateY(-1px); }
+
+/* ── MODULES COMPACTS (dans expander) ────────────────────────────────────── */
+.kv-mod-compact {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 14px; border: 1px solid var(--bd); border-radius: 6px;
+  background: var(--bg-2); margin-bottom: 8px;
+  cursor: pointer; transition: all .18s var(--ease);
+}
+.kv-mod-compact:hover { border-color: var(--gbr); background: var(--bg-3); }
+.kv-mod-compact-icon {
+  width: 30px; height: 30px; border-radius: 4px;
+  background: var(--g8); border: 1px solid var(--gbr);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--gold); font-size: 0.82rem; flex-shrink: 0;
+}
+.kv-mod-compact-info { flex: 1; min-width: 0; }
+.kv-mod-compact-title { font-size: 0.84rem; font-weight: 500; color: var(--txt); margin-bottom: 1px; }
+.kv-mod-compact-desc { font-size: 0.7rem; color: var(--txt3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kv-mod-compact-cat {
+  font-size: 0.55rem; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--gold); opacity: 0.6; flex-shrink: 0;
+}
+
+/* Expander premium style */
+[data-testid="stExpander"] {
+  background: var(--bg-2) !important; border: 1px solid var(--bd) !important; border-radius: 7px !important;
+}
+[data-testid="stExpander"] summary {
+  color: var(--txt2) !important; font-size: 0.84rem !important;
+  font-family: var(--sans) !important; font-weight: 500 !important;
+  padding: 13px 16px !important;
+}
+[data-testid="stExpander"] summary:hover { color: var(--txt) !important; }
+[data-testid="stExpander"] > div > div > details[open] summary { color: var(--gold-lt) !important; }
+[data-testid="stExpander"] > div > div > details > div { padding: 0 12px 14px !important; }
+
+/* CTA primary chips (3 colonnes) */
+.kv-cta-chip-btn button {
+  background: var(--bg-2) !important;
+  border: 1px solid var(--bd) !important;
+  border-radius: 8px !important;
+  color: var(--txt2) !important;
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+  padding: 12px 16px !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  transition: all .2s var(--ease) !important;
+  text-align: left !important;
+}
 
 /* ── COMMAND CENTER AREA ─────────────────────────────────────────────────── */
 .kv-command-bar {
@@ -677,12 +727,11 @@ NAV_ITEMS = [
     ("⊞", "Repurposing"), ("◇", "Idéation"), ("◉", "Veille"),
 ]
 
-CHIPS = [
-    ("✍", "Post LinkedIn sur les délais VEFA"),
-    ("🏢", "Audit digital d'un promoteur"),
-    ("◈", "DM de prospection Nexity"),
-    ("⚡", "10 hooks réservation VEFA"),
-    ("↔", "Décliner un sujet en 6 formats"),
+# 3 CTAs primaires — les actions les plus utilisées
+PRIMARY_ACTIONS = [
+    ("✦", "Créer un post LinkedIn", "Crée un post LinkedIn premium sur les délais de livraison VEFA et comment les communicer"),
+    ("◈", "Prospecter un promoteur", "Génère un DM LinkedIn percutant pour prospecter un directeur marketing de promoteur immobilier"),
+    ("◎", "Auditer un promoteur", "Analyse la présence digitale de Nexity et génère un audit complet avec score /100 et angle de prospection"),
 ]
 
 ACTIVITY = [
@@ -732,7 +781,7 @@ with st.sidebar:
 
     st.markdown('<div class="kv-div"></div>', unsafe_allow_html=True)
 
-    # Activity feed
+    # Activité + Marché → expander (secondary info)
     act_rows = "".join([
         f"""<div class="kv-act-row">
           <div class="kv-act-dot"></div>
@@ -740,27 +789,25 @@ with st.sidebar:
         </div>"""
         for text, time in ACTIVITY
     ])
-    st.markdown(f"""
-    <div class="kv-activity">
-      <div class="kv-widget-head">Activité récente</div>
-      {act_rows}
-    </div>
-    """, unsafe_allow_html=True)
+    with st.expander("📊  Activité & Marché"):
+        st.markdown(f"""
+        <div style="padding-top:4px">
+        <div class="kv-widget-head" style="padding:0 0 8px">Activité récente</div>
+        {act_rows}
+        <div style="height:10px"></div>
+        <div class="kv-insight" style="margin:0">
+          <div class="kv-insight-head">Marché VEFA · France</div>
+          <div class="kv-insight-val">+12 % leads Q1</div>
+          <div class="kv-insight-delta">↑ vs. trimestre précédent</div>
+        </div>
+        </div>
+        """, unsafe_allow_html=True)
 
-    # Market insight
-    st.markdown("""
-    <div class="kv-insight">
-      <div class="kv-insight-head">Marché VEFA · France</div>
-      <div class="kv-insight-val">+12 % leads Q1</div>
-      <div class="kv-insight-delta">↑ vs. trimestre précédent</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # Model badge
+    # Model badge (always visible, concis)
     st.markdown("""
     <div class="kv-model-strip">
       <div class="kv-model-dot"></div>
-      <div class="kv-model-name">claude-opus-4-7 · Cache actif · &lt;2s</div>
+      <div class="kv-model-name">claude-opus-4-7 · Cache actif</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -797,16 +844,14 @@ if not api_key:
     """, unsafe_allow_html=True)
     st.stop()
 
-# ── Welcome ─────────────────────────────────────────────────────────────────
+# ── Welcome — hiérarchie claire ──────────────────────────────────────────────
 if not st.session_state.messages:
 
-    # Hero — composition deux colonnes éditoriale
+    # ── NIVEAU 1 : Hero minimaliste — lecture immédiate ───────────────────────
     st.markdown("""
-    <div class="kv-hero">
+    <div class="kv-hero" style="grid-template-columns:1fr; padding:32px 0 28px;">
       <div class="kv-hero-deco"></div>
       <div class="kv-hero-deco-2"></div>
-
-      <!-- Colonne gauche : texte éditorial -->
       <div class="kv-hero-content">
         <div class="kv-hero-eyebrow">K—VEFA · Intelligence Immobilière</div>
         <h1 class="kv-hero-h1">
@@ -815,77 +860,62 @@ if not st.session_state.messages:
         </h1>
         <div class="kv-hero-rule"></div>
         <p class="kv-hero-sub">
-          L'IA spécialisée VEFA qui prospecte, analyse et crée<br>
-          du contenu en quelques secondes — sans friction.
+          Prospection, contenu, analyse — en quelques secondes.<br>
+          Décrivez votre besoin ou choisissez une action ci-dessous.
         </p>
-        <p class="kv-hero-hint">Sélectionnez un module ou décrivez votre besoin ci-dessous.</p>
-      </div>
-
-      <!-- Colonne droite : aperçu IA + métriques -->
-      <div class="kv-hero-visual">
-        <div class="kv-hero-preview">
-          <div class="kv-hero-preview-tag">Généré à l'instant</div>
-          <div class="kv-hero-preview-text">
-            « 3 raisons pour lesquelles votre présence<br>digitale freine vos ventes VEFA... »
-          </div>
-          <div class="kv-hero-preview-foot">
-            <span>Post LinkedIn</span>
-            <span>·</span>
-            <span>CONTENU</span>
-          </div>
-        </div>
-        <div class="kv-mini-grid">
-          <div class="kv-mini-metric"><div class="kv-mini-metric-val">3–5h</div><div class="kv-mini-metric-lbl">Gagnées / sem.</div></div>
-          <div class="kv-mini-metric"><div class="kv-mini-metric-val">+38%</div><div class="kv-mini-metric-lbl">Taux réponse</div></div>
-          <div class="kv-mini-metric"><div class="kv-mini-metric-val">&lt;60s</div><div class="kv-mini-metric-lbl">Génération</div></div>
-          <div class="kv-mini-metric"><div class="kv-mini-metric-val">Opus 4.7</div><div class="kv-mini-metric-lbl">Modèle IA</div></div>
-        </div>
       </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # Module cards (top 3)
-    st.markdown('<div class="kv-section-label">Modules principaux</div>', unsafe_allow_html=True)
+    # ── NIVEAU 2 : 3 actions primaires — point focal ──────────────────────────
+    st.markdown('<div class="kv-section-label">Par où commencer ?</div>', unsafe_allow_html=True)
 
-    c1, c2, c3 = st.columns(3, gap="small")
-    for col, mod in zip([c1, c2, c3], MODULES[:3]):
+    a1, a2, a3 = st.columns(3, gap="small")
+    for col, (icon, label, prompt) in zip([a1, a2, a3], PRIMARY_ACTIONS):
         with col:
-            st.markdown(f"""
-            <div class="kv-module">
-              <div class="kv-module-img-wrap">
-                <img class="kv-module-img" src="{mod['img']}" alt="{mod['title']}" loading="lazy">
-                <div class="kv-module-img-overlay"></div>
-                <div class="kv-module-img-cat">{mod['cat']}</div>
-              </div>
-              <div class="kv-module-body">
-                <div class="kv-module-title">{mod['title']}</div>
-                <div class="kv-module-desc">{mod['desc']}</div>
-                <div class="kv-preview">
-                  <span class="kv-preview-tag">Aperçu IA</span>
-                  <div class="kv-preview-text">{mod['preview']}</div>
-                </div>
-                <div class="kv-module-foot">
-                  <div class="kv-module-arrow">Démarrer →</div>
-                  <div class="kv-module-usage">{mod['usage']}</div>
-                </div>
-              </div>
-            </div>
-            """, unsafe_allow_html=True)
-            if st.button("Ouvrir", key=f"mod_{mod['cat']}", use_container_width=True):
-                st.session_state.messages.append({"role": "user", "content": mod["prompt"]})
+            if st.button(f"{icon}  {label}", key=f"cta_{label[:10]}", use_container_width=True):
+                st.session_state.messages.append({"role": "user", "content": prompt})
                 st.rerun()
 
-    # Secondary modules as pills
+    # ── NIVEAU 3 : Tous les modules — progressive disclosure ──────────────────
+    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+
+    with st.expander("⊞  Voir les 6 modules disponibles"):
+        tab1, tab2 = st.tabs(["  Création & Idéation  ", "  Prospection & Analyse  "])
+
+        with tab1:
+            for mod in [MODULES[0], MODULES[3], MODULES[4]]:  # Contenu, Repurposing, Hooks
+                st.markdown(f"""
+                <div class="kv-mod-compact">
+                  <div class="kv-mod-compact-icon">{mod['icon']}</div>
+                  <div class="kv-mod-compact-info">
+                    <div class="kv-mod-compact-title">{mod['title']}</div>
+                    <div class="kv-mod-compact-desc">{mod['desc']}</div>
+                  </div>
+                  <div class="kv-mod-compact-cat">{mod['cat']}</div>
+                </div>
+                """, unsafe_allow_html=True)
+                if st.button(f"Lancer — {mod['title']}", key=f"exp_{mod['cat']}", use_container_width=True):
+                    st.session_state.messages.append({"role": "user", "content": mod["prompt"]})
+                    st.rerun()
+
+        with tab2:
+            for mod in [MODULES[1], MODULES[2], MODULES[5]]:  # Prospection, Analyse, Veille
+                st.markdown(f"""
+                <div class="kv-mod-compact">
+                  <div class="kv-mod-compact-icon">{mod['icon']}</div>
+                  <div class="kv-mod-compact-info">
+                    <div class="kv-mod-compact-title">{mod['title']}</div>
+                    <div class="kv-mod-compact-desc">{mod['desc']}</div>
+                  </div>
+                  <div class="kv-mod-compact-cat">{mod['cat']}</div>
+                </div>
+                """, unsafe_allow_html=True)
+                if st.button(f"Lancer — {mod['title']}", key=f"exp_{mod['cat']}", use_container_width=True):
+                    st.session_state.messages.append({"role": "user", "content": mod["prompt"]})
+                    st.rerun()
+
     st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
-    p1, p2, p3 = st.columns(3, gap="small")
-    for col, mod in zip([p1, p2, p3], MODULES[3:]):
-        with col:
-            if st.button(f"{mod['icon']}  {mod['title']}", key=f"pill_{mod['cat']}", use_container_width=True):
-                st.session_state.messages.append({"role": "user", "content": mod["prompt"]})
-                st.rerun()
-
-    # Chip prompts label
-    st.markdown('<div class="kv-section-label" style="margin-top:22px">Suggestions rapides</div>', unsafe_allow_html=True)
 
 # ── Conversation ─────────────────────────────────────────────────────────────
 else:
@@ -903,23 +933,6 @@ else:
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
-
-# ── AI Command Center label ──────────────────────────────────────────────────
-if not st.session_state.messages:
-    # Chip buttons (5 suggestions)
-    kc1, kc2, kc3, kc4, kc5 = st.columns(5, gap="small")
-    for col, (icon, label) in zip([kc1, kc2, kc3, kc4, kc5], CHIPS):
-        with col:
-            if st.button(f"{icon}  {label[:26]}{'…' if len(label)>26 else ''}", key=f"chip_{label[:8]}", use_container_width=True):
-                st.session_state.messages.append({"role": "user", "content": label})
-                st.rerun()
-    st.markdown("<div style='height:4px'></div>", unsafe_allow_html=True)
-
-st.html("""
-<div class="kv-command-bar">
-  <div class="kv-command-label">Commande IA</div>
-</div>
-""")
 
 # ── Input ────────────────────────────────────────────────────────────────────
 prompt = st.chat_input("Décrivez votre besoin VEFA — contenu, prospection, analyse, hooks…")
