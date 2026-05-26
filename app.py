@@ -101,12 +101,29 @@ html, body {
 ::selection { background: var(--gold); color: var(--bg); }
 
 /* ═══ LAYOUT ══════════════════════════════════════════════════════════════ */
-.block-container {
-  padding: 0 40px 120px !important;
+
+/* Main section = full-viewport flex column */
+section[data-testid="stMain"], .main {
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 100vh !important;
+  overflow-y: auto !important;
+}
+
+/* Content block grows to fill available space */
+.block-container,
+[data-testid="stAppViewBlockContainer"] {
+  flex: 1 1 auto !important;
+  padding: 0 48px 32px !important;
   max-width: 100% !important;
-  min-height: calc(100vh - 80px) !important;
   position: relative;
   z-index: 1;
+}
+
+/* Chat input pinned to bottom via flex */
+[data-testid="stChatInputContainer"] {
+  flex-shrink: 0 !important;
+  margin-top: auto !important;
 }
 
 /* ═══ SIDEBAR ═════════════════════════════════════════════════════════════ */
@@ -660,7 +677,7 @@ html, body {
 }
 
 /* ═══ BUTTONS (main area) ════════════════════════════════════════════════ */
-/* Main content buttons (reset + card CTAs) */
+/* "Ouvrir" card CTAs */
 [data-testid="stMain"] [data-testid="stButton"] button,
 .main [data-testid="stButton"] button {
   background: transparent !important;
@@ -680,6 +697,24 @@ html, body {
   background: var(--gold-8) !important;
   border-color: var(--gold-border) !important;
   color: var(--gold) !important;
+}
+
+/* Pill buttons (compact secondary modules) */
+[data-testid="stColumns"]:last-of-type [data-testid="stButton"] button {
+  background: var(--bg-2) !important;
+  color: var(--txt-soft) !important;
+  border: 1px solid var(--border-2) !important;
+  border-radius: 6px !important;
+  font-size: 0.8rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.02em !important;
+  text-transform: none !important;
+  padding: 9px 16px !important;
+}
+[data-testid="stColumns"]:last-of-type [data-testid="stButton"] button:hover {
+  background: var(--gold-8) !important;
+  border-color: var(--gold-border) !important;
+  color: var(--gold-lt) !important;
 }
 
 /* ═══ API KEY ═════════════════════════════════════════════════════════════ */
@@ -1011,14 +1046,12 @@ if not st.session_state.messages:
     </div>
     """, unsafe_allow_html=True)
 
-    # Module grid — row 1
+    # Module grid — 3 cards (single row, no scroll needed)
     st.markdown('<div class="kv-section-label">Modules disponibles</div>', unsafe_allow_html=True)
 
     col1, col2, col3 = st.columns(3, gap="small")
-    cols_row1 = [col1, col2, col3]
-
-    for i, mod in enumerate(MODULES[:3]):
-        with cols_row1[i]:
+    for i, (col, mod) in enumerate(zip([col1, col2, col3], MODULES[:3])):
+        with col:
             st.markdown(f"""
             <div class="kv-module">
               <div class="kv-module-icon">{mod["icon"]}</div>
@@ -1032,24 +1065,12 @@ if not st.session_state.messages:
                 st.session_state.messages.append({"role": "user", "content": mod["prompt"]})
                 st.rerun()
 
-    st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
-
-    # Module grid — row 2
-    col4, col5, col6 = st.columns(3, gap="small")
-    cols_row2 = [col4, col5, col6]
-
-    for i, mod in enumerate(MODULES[3:]):
-        with cols_row2[i]:
-            st.markdown(f"""
-            <div class="kv-module">
-              <div class="kv-module-icon">{mod["icon"]}</div>
-              <div class="kv-module-cat">{mod["cat"]}</div>
-              <div class="kv-module-title">{mod["title"]}</div>
-              <div class="kv-module-desc">{mod["desc"]}</div>
-              <div class="kv-module-arrow">Démarrer →</div>
-            </div>
-            """, unsafe_allow_html=True)
-            if st.button("Ouvrir", key=f"mod_{i+3}", use_container_width=True):
+    # 3 extra modules as compact suggestion pills
+    st.markdown("<div style='height:18px'></div>", unsafe_allow_html=True)
+    c1, c2, c3 = st.columns(3, gap="small")
+    for i, (col, mod) in enumerate(zip([c1, c2, c3], MODULES[3:])):
+        with col:
+            if st.button(f"{mod['icon']}  {mod['title']}", key=f"pill_{i}", use_container_width=True):
                 st.session_state.messages.append({"role": "user", "content": mod["prompt"]})
                 st.rerun()
 
