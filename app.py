@@ -1,6 +1,96 @@
 import os
+import json
+from datetime import datetime
+from pathlib import Path
 import streamlit as st
 import anthropic
+
+# ══════════════════════════════════════════════════════════════════════════════
+# STORAGE — mémoire persistante (conversations + activité réelle)
+# ══════════════════════════════════════════════════════════════════════════════
+HISTORY_FILE = Path(__file__).parent / "conversations.json"
+MAX_CONVS = 50          # limite stockage
+MAX_RECENT = 5          # affichées dans "Activité récente"
+
+def load_history() -> dict:
+    if HISTORY_FILE.exists():
+        try:
+            return json.loads(HISTORY_FILE.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+    return {"conversations": []}
+
+def save_history(data: dict) -> None:
+    try:
+        HISTORY_FILE.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception:
+        pass  # silent fail (FS read-only possible sur certains hébergeurs)
+
+def make_conv_id() -> str:
+    return "conv_" + datetime.now().strftime("%Y%m%d%H%M%S%f")
+
+def make_title(text: str, max_len: int = 64) -> str:
+    title = text.strip().split("\n")[0]
+    if len(title) > max_len:
+        title = title[:max_len].rsplit(" ", 1)[0] + "…"
+    return title or "Nouvelle conversation"
+
+def relative_time(iso_ts: str) -> str:
+    try:
+        dt = datetime.fromisoformat(iso_ts)
+        delta = datetime.now() - dt
+        s = int(delta.total_seconds())
+        if s < 60:    return f"{s}s"
+        if s < 3600:  return f"{s // 60} min"
+        if s < 86400: return f"{s // 3600}h"
+        d = s // 86400
+        return f"{d}j" if d < 7 else dt.strftime("%d %b")
+    except Exception:
+        return "—"
+
+def detect_category(text: str):
+    """Devine icône + couleur en fonction du contenu (pour l'activité)."""
+    t = text.lower()
+    if any(k in t for k in ["dm linkedin", "prospect", "prospecter", "promoteur"]):
+        return ("◈", "blue")
+    if any(k in t for k in ["analys", "audit", "score", "marché", "tendance", "zone"]):
+        return ("◎", "gold")
+    if any(k in t for k in ["post linkedin", "contenu", "hook", "caption", "reel", "newsletter"]):
+        return ("✎", "pink")
+    if any(k in t for k in ["veille", "opportunité", "signal", "détect"]):
+        return ("↗", "green")
+    return ("✦", "violet")
+
+def save_current_conversation() -> None:
+    """Persiste la conversation courante (st.session_state.messages) sur disque."""
+    if not st.session_state.get("messages"):
+        return
+    history = load_history()
+    conv_id = st.session_state.get("current_conv_id")
+    first_user = next((m["content"] for m in st.session_state.messages if m["role"] == "user"), "")
+    now = datetime.now().isoformat()
+
+    existing = next((c for c in history["conversations"] if c["id"] == conv_id), None)
+    if existing:
+        existing["messages"] = st.session_state.messages
+        existing["updated_at"] = now
+        if first_user:
+            existing["title"] = make_title(first_user)
+    else:
+        new_id = conv_id or make_conv_id()
+        st.session_state.current_conv_id = new_id
+        history["conversations"].append({
+            "id": new_id,
+            "title": make_title(first_user) if first_user else "Nouvelle conversation",
+            "started_at": now,
+            "updated_at": now,
+            "messages": st.session_state.messages,
+        })
+
+    # tri du plus récent au plus ancien, limite MAX_CONVS
+    history["conversations"].sort(key=lambda c: c.get("updated_at", c.get("started_at", "")), reverse=True)
+    history["conversations"] = history["conversations"][:MAX_CONVS]
+    save_history(history)
 
 st.set_page_config(
     page_title="K—VEFA Intelligence",
@@ -378,8 +468,29 @@ section[data-testid="stMain"], .main {
 .kv-act-icon.green { background: rgba(74,222,128,0.10); color: #6EE7B7; }
 .kv-act-icon.pink { background: rgba(244,114,182,0.10); color: #F9A8D4; }
 .kv-act-icon.violet { background: rgba(167,139,250,0.10); color: #C4B5FD; }
-.kv-act-text { flex: 1; font-size: 0.86rem; color: var(--txt); font-weight: 400; }
+.kv-act-text {
+  flex: 1; font-size: 0.86rem; color: var(--txt); font-weight: 400;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 .kv-act-time { font-size: 0.74rem; color: var(--txt3); flex-shrink: 0; }
+
+/* Liens cliquables (chaque ligne ouvre la conversation correspondante) */
+.kv-act-link {
+  text-decoration: none !important;
+  color: inherit !important;
+  cursor: pointer;
+}
+.kv-act-link:hover { background: rgba(196,164,107,0.045); }
+.kv-act-link:hover .kv-act-text { color: var(--gold-lt); }
+.kv-act-link:hover .kv-act-icon { transform: scale(1.06); }
+.kv-act-icon { transition: transform .18s var(--ease); }
+
+.kv-act-empty {
+  padding: 28px 16px; text-align: center;
+  font-size: 0.82rem; color: var(--txt3);
+  border: 1px dashed var(--bd); border-radius: 10px;
+  background: rgba(196,164,107,0.02);
+}
 
 /* ── FOOTER HINT ─────────────────────────────────────────────────────────── */
 .kv-foot-hint {
@@ -589,6 +700,38 @@ TOOLS = [
     {"type": "web_fetch_20260209", "name": "web_fetch"},
 ]
 
+def build_memory_block() -> str:
+    """Construit un résumé textuel des conversations passées pour donner du
+    contexte à l'agent (mémoire à long terme). N'inclut PAS la conversation
+    courante. Renvoie une chaîne vide si l'historique est vide."""
+    history = load_history()
+    current_id = st.session_state.get("current_conv_id")
+    past = [c for c in history["conversations"] if c["id"] != current_id]
+    if not past:
+        return ""
+
+    # On garde les 8 derniers échanges (titres + dernière question utilisateur)
+    lines = []
+    for c in past[:8]:
+        title = c.get("title", "Conversation")
+        when = relative_time(c.get("updated_at", c.get("started_at", "")))
+        # On extrait la dernière question utilisateur pour donner un peu de contexte
+        user_msgs = [m["content"] for m in c.get("messages", []) if m["role"] == "user"]
+        last_q = user_msgs[-1] if user_msgs else ""
+        last_q_short = (last_q[:160] + "…") if len(last_q) > 160 else last_q
+        lines.append(f"- [{when}] {title}" + (f' — « {last_q_short} »' if last_q_short else ""))
+
+    return (
+        "\n\n--------------------------------------------------\n"
+        "# MÉMOIRE — Historique de travail de l'utilisateur\n"
+        "--------------------------------------------------\n"
+        "Tu disposes d'un historique des sujets que l'utilisateur a déjà traités "
+        "avec toi. Si la question actuelle fait écho à un sujet passé, fais-y "
+        "référence pour montrer la continuité du travail et éviter les redites.\n\n"
+        "Conversations récentes :\n"
+        + "\n".join(lines)
+    )
+
 # 5 items uniquement — sidebar épurée. Les icônes sont rendues via CSS ::before
 # (clé Streamlit → classe .st-key-nav_X → contenu de l'icône en pseudo-élément).
 NAV_ITEMS = [
@@ -624,14 +767,8 @@ PRIMARY_ACTIONS = [
     },
 ]
 
-# Activité récente — liste simple
-ACTIVITY = [
-    ("◎", "gold",   "3 promoteurs identifiés à Bordeaux",                "2 min"),
-    ("◈", "blue",   "Analyse concurrentielle — Lyon",                    "8 min"),
-    ("↗", "green",  "Nouvelle opportunité VEFA détectée — +18% marge estimée", "15 min"),
-    ("✎", "pink",   "Post LinkedIn généré — Tendances VEFA 2024",        "25 min"),
-    ("◉", "violet", "12 leads enrichis et qualifiés",                    "40 min"),
-]
+# L'activité affichée provient maintenant de l'historique réel des conversations
+# (cf. load_history() / save_current_conversation()).
 
 # ══════════════════════════════════════════════════════════════════════════════
 # INIT
@@ -642,15 +779,30 @@ if not api_key:
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
+if "current_conv_id" not in st.session_state:
+    st.session_state.current_conv_id = None
 
 st.html(CSS)
 
-# ── Query param navigation (action cards) ────────────────────────────────────
+# ── Query param : reprendre une conversation passée ─────────────────────────
+if "conv" in st.query_params:
+    cid = st.query_params["conv"]
+    h = load_history()
+    conv = next((c for c in h["conversations"] if c["id"] == cid), None)
+    if conv:
+        st.session_state.messages = conv["messages"]
+        st.session_state.current_conv_id = conv["id"]
+    st.query_params.clear()
+    st.rerun()
+
+# ── Query param : carte d'action rapide ─────────────────────────────────────
 if "qa" in st.query_params:
     qa_id = st.query_params["qa"]
     action = next((a for a in PRIMARY_ACTIONS if a["id"] == qa_id), None)
     if action:
-        st.session_state.messages.append({"role": "user", "content": action["prompt"]})
+        # Nouvelle conversation pour chaque action rapide
+        st.session_state.messages = [{"role": "user", "content": action["prompt"]}]
+        st.session_state.current_conv_id = None
         st.query_params.clear()
         st.rerun()
 
@@ -685,9 +837,13 @@ with st.sidebar:
     for slug, label, prompt in NAV_ITEMS:
         if st.button(label, key=f"nav_{slug}", use_container_width=True):
             if prompt:
-                st.session_state.messages.append({"role": "user", "content": prompt})
+                # Nouveau thread démarré depuis un module : conv neuve
+                st.session_state.messages = [{"role": "user", "content": prompt}]
+                st.session_state.current_conv_id = None
             else:
+                # Centre de commande : retour accueil, on libère la conv courante
                 st.session_state.messages = []
+                st.session_state.current_conv_id = None
             st.rerun()
 
     # État actif "Centre de commande" quand pas de conversation
@@ -781,20 +937,35 @@ if not st.session_state.messages:
     cards_html += '</div>'
     st.html(cards_html)
 
-    # Activité récente — liste simple
+    # Activité récente — historique réel des conversations
     st.markdown('<div class="kv-section-tag">Activité récente</div>', unsafe_allow_html=True)
 
-    list_html = '<div class="kv-act-list">'
-    for icon, color, text, time in ACTIVITY:
-        list_html += (
-            f'<div class="kv-act-item">'
-            f'<div class="kv-act-icon {color}">{icon}</div>'
-            f'<div class="kv-act-text">{text}</div>'
-            f'<div class="kv-act-time">{time}</div>'
-            f'</div>'
+    history = load_history()
+    recent = history["conversations"][:MAX_RECENT]
+
+    if recent:
+        list_html = '<div class="kv-act-list">'
+        for c in recent:
+            # Texte de référence pour déduire l'icône : title + 1er message user
+            first_user = next((m["content"] for m in c.get("messages", []) if m["role"] == "user"), "")
+            icon, color = detect_category((c.get("title", "") + " " + first_user))
+            title = c.get("title", "Conversation")
+            time = relative_time(c.get("updated_at", c.get("started_at", "")))
+            list_html += (
+                f'<a class="kv-act-item kv-act-link" href="?conv={c["id"]}" target="_self">'
+                f'<div class="kv-act-icon {color}">{icon}</div>'
+                f'<div class="kv-act-text">{title}</div>'
+                f'<div class="kv-act-time">{time}</div>'
+                f'</a>'
+            )
+        list_html += '</div>'
+        st.html(list_html)
+    else:
+        st.html(
+            '<div class="kv-act-empty">'
+            'Aucune activité pour le moment. Lancez votre première requête ci-dessus.'
+            '</div>'
         )
-    list_html += '</div>'
-    st.html(list_html)
 
     # Footer hint
     st.markdown("""
@@ -837,10 +1008,18 @@ if st.session_state.messages and st.session_state.messages[-1]["role"] == "user"
         try:
             client = anthropic.Anthropic(api_key=api_key)
 
+            # System en 2 blocs : prompt stable (caché) + mémoire dynamique (non cachée)
+            system_blocks = [
+                {"type": "text", "text": SYSTEM_PROMPT, "cache_control": {"type": "ephemeral"}},
+            ]
+            memory = build_memory_block()
+            if memory:
+                system_blocks.append({"type": "text", "text": memory})
+
             with client.messages.stream(
                 model="claude-opus-4-7",
                 max_tokens=8192,
-                system=[{"type": "text", "text": SYSTEM_PROMPT, "cache_control": {"type": "ephemeral"}}],
+                system=system_blocks,
                 tools=TOOLS,
                 messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages],
             ) as stream:
@@ -853,6 +1032,8 @@ if st.session_state.messages and st.session_state.messages[-1]["role"] == "user"
 
             placeholder.markdown(full_response)
             st.session_state.messages.append({"role": "assistant", "content": full_response})
+            # Persistance : on sauvegarde dès qu'un échange complet est obtenu
+            save_current_conversation()
             st.rerun()
 
         except Exception as e:

@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+.DS_Store
+
+# Mémoire locale de l'agent — historique des conversations utilisateur
+conversations.json
