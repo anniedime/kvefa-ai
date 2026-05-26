@@ -114,25 +114,87 @@ section[data-testid="stMain"], .main {
   text-transform: uppercase; color: rgba(74,222,128,0.7);
 }
 
-/* Nav buttons — minimaux */
+/* Nav block — espacement vertical strict */
+[data-testid="stSidebar"] [data-testid="stVerticalBlock"] { gap: 0 !important; }
+[data-testid="stSidebar"] [data-testid="stElementContainer"] { margin: 0 !important; }
+[data-testid="stSidebar"] .stButton { margin: 0 !important; padding: 0 !important; }
+
+/* Nav buttons — flex strict, aligné gauche, icônes via ::before */
 [data-testid="stSidebar"] [data-testid="stButton"] button {
-  background: transparent !important; border: none !important;
-  color: var(--txt2) !important; text-align: left !important;
-  font-family: var(--sans) !important; font-size: 0.875rem !important; font-weight: 400 !important;
-  padding: 10px 22px !important;
-  border-radius: 0 !important; width: 100% !important;
-  border-left: 2px solid transparent !important; letter-spacing: 0 !important;
-  text-transform: none !important; transition: all .15s var(--ease) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  text-align: left !important;
+  background: transparent !important;
+  border: none !important;
+  color: var(--txt2) !important;
+  font-family: var(--sans) !important;
+  font-size: 0.875rem !important;
+  font-weight: 400 !important;
+  padding: 11px 22px !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  width: 100% !important;
+  border-left: 2px solid transparent !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  transition: background .15s var(--ease), color .15s var(--ease), border-color .15s var(--ease) !important;
+  line-height: 1.2 !important;
+  min-height: 40px !important;
+}
+[data-testid="stSidebar"] [data-testid="stButton"] button > div,
+[data-testid="stSidebar"] [data-testid="stButton"] button p,
+[data-testid="stSidebar"] [data-testid="stButton"] button [data-testid="stMarkdownContainer"] {
+  margin: 0 !important;
+  padding: 0 !important;
+  text-align: left !important;
+  width: auto !important;
+  font-size: inherit !important;
+  line-height: 1.2 !important;
+  display: inline !important;
 }
 [data-testid="stSidebar"] [data-testid="stButton"] button:hover {
-  background: var(--g6) !important; color: var(--txt) !important;
+  background: var(--g6) !important;
+  color: var(--txt) !important;
   border-left-color: var(--gbr) !important;
 }
-.kv-nav-active [data-testid="stButton"] button {
+
+/* Icon column — fixed width via ::before, alignée parfaitement */
+[data-testid="stSidebar"] [class*="st-key-nav_"] button::before {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 22px !important;
+  margin-right: 14px !important;
+  color: var(--gold) !important;
+  opacity: 0.7 !important;
+  font-size: 0.95rem !important;
+  flex-shrink: 0 !important;
+  line-height: 1 !important;
+}
+[data-testid="stSidebar"] .st-key-nav_centre button::before      { content: "✦"; }
+[data-testid="stSidebar"] .st-key-nav_prospection button::before { content: "◈"; }
+[data-testid="stSidebar"] .st-key-nav_analyse button::before     { content: "◎"; }
+[data-testid="stSidebar"] .st-key-nav_contenu button::before     { content: "✎"; }
+[data-testid="stSidebar"] .st-key-nav_veille button::before      { content: "◉"; }
+[data-testid="stSidebar"] [class*="st-key-nav_"] button:hover::before {
+  opacity: 1 !important;
+  color: var(--gold-lt) !important;
+}
+
+/* État actif — Centre de commande quand pas de conversation */
+[data-testid="stSidebar"] .st-key-nav_centre.kv-active button {
   background: var(--g10) !important;
   color: var(--gold-lt) !important;
   border-left-color: var(--gold) !important;
 }
+[data-testid="stSidebar"] .st-key-nav_centre.kv-active button::before {
+  opacity: 1 !important;
+  color: var(--gold-lt) !important;
+}
+
+/* Espacement nav <-> profil */
+.kv-nav-wrap { padding: 4px 0 0; }
 
 .kv-sidebar-spacer { flex: 1 1 auto; }
 
@@ -527,13 +589,14 @@ TOOLS = [
     {"type": "web_fetch_20260209", "name": "web_fetch"},
 ]
 
-# 5 items uniquement — sidebar épurée
+# 5 items uniquement — sidebar épurée. Les icônes sont rendues via CSS ::before
+# (clé Streamlit → classe .st-key-nav_X → contenu de l'icône en pseudo-élément).
 NAV_ITEMS = [
-    ("✦", "Centre de commande", None),
-    ("◈", "Prospection", "Génère un DM LinkedIn percutant pour prospecter un directeur marketing de promoteur immobilier"),
-    ("◎", "Analyse", "Analyse la présence digitale d'un promoteur immobilier (préciser le nom) et génère un audit complet avec score /100 et angle de prospection"),
-    ("✎", "Contenu", "Crée un post LinkedIn premium sur les délais de livraison VEFA et comment les communiquer"),
-    ("◉", "Veille", "Analyse les tendances actuelles du marché immobilier neuf en France et identifie 3 opportunités commerciales"),
+    ("centre",      "Centre de commande", None),
+    ("prospection", "Prospection",        "Génère un DM LinkedIn percutant pour prospecter un directeur marketing de promoteur immobilier"),
+    ("analyse",     "Analyse",            "Analyse la présence digitale d'un promoteur immobilier (préciser le nom) et génère un audit complet avec score /100 et angle de prospection"),
+    ("contenu",     "Contenu",            "Crée un post LinkedIn premium sur les délais de livraison VEFA et comment les communiquer"),
+    ("veille",      "Veille",             "Analyse les tendances actuelles du marché immobilier neuf en France et identifie 3 opportunités commerciales"),
 ]
 
 # 3 actions rapides — focal point
@@ -617,20 +680,31 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    # Navigation — 5 items
-    for i, (icon, label, prompt) in enumerate(NAV_ITEMS):
-        is_active = (i == 0 and not st.session_state.messages)
-        if is_active:
-            st.markdown('<div class="kv-nav-active">', unsafe_allow_html=True)
-        if st.button(f"{icon}   {label}", key=f"nav_{label}", use_container_width=True):
+    # Navigation — 5 items. Icônes injectées via CSS ::before (classes .st-key-nav_X)
+    st.markdown('<div class="kv-nav-wrap"></div>', unsafe_allow_html=True)
+    for slug, label, prompt in NAV_ITEMS:
+        if st.button(label, key=f"nav_{slug}", use_container_width=True):
             if prompt:
                 st.session_state.messages.append({"role": "user", "content": prompt})
-                st.rerun()
             else:
                 st.session_state.messages = []
-                st.rerun()
-        if is_active:
-            st.markdown('</div>', unsafe_allow_html=True)
+            st.rerun()
+
+    # État actif "Centre de commande" quand pas de conversation
+    if not st.session_state.messages:
+        st.html("""
+        <style>
+          [data-testid="stSidebar"] .st-key-nav_centre button {
+            background: rgba(196,164,107,0.10) !important;
+            color: #D4B98A !important;
+            border-left-color: #C4A46B !important;
+          }
+          [data-testid="stSidebar"] .st-key-nav_centre button::before {
+            opacity: 1 !important;
+            color: #D4B98A !important;
+          }
+        </style>
+        """)
 
     # Spacer pousse le profil en bas
     st.markdown('<div class="kv-sidebar-spacer"></div>', unsafe_allow_html=True)
