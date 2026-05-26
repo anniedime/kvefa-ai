@@ -174,51 +174,124 @@ section[data-testid="stMain"], .main {
 .kv-session-label { font-size: 0.7rem; font-weight: 600; color: var(--gold); letter-spacing: 0.07em; }
 .kv-session-sub { font-size: 0.63rem; color: var(--txt3); margin-top: 4px; padding-left: 13px; }
 
-/* ── HERO ────────────────────────────────────────────────────────────────── */
+/* ── HERO — composition deux colonnes éditoriale ─────────────────────────── */
 .kv-hero {
-  position: relative; padding: 32px 0 24px; overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 40px;
+  align-items: center;
+  padding: 36px 0 28px;
+  position: relative;
 }
+
+/* Decorative lines — right edge only */
 .kv-hero-deco {
-  position: absolute; right: -40px; top: 10px;
-  width: 280px; height: 280px;
-  border: 1px solid rgba(196,164,107,0.07);
-  transform: rotate(15deg); pointer-events: none;
+  position: absolute; right: -20px; top: 0;
+  width: 240px; height: 240px;
+  border: 1px solid rgba(196,164,107,0.06);
+  transform: rotate(12deg); pointer-events: none; z-index: 0;
 }
 .kv-hero-deco-2 {
-  position: absolute; right: 40px; top: 50px;
-  width: 160px; height: 160px;
+  position: absolute; right: 30px; top: 30px;
+  width: 130px; height: 130px;
   border: 1px solid rgba(196,164,107,0.04);
-  transform: rotate(15deg); pointer-events: none;
+  transform: rotate(12deg); pointer-events: none; z-index: 0;
 }
-.kv-hero-label {
-  font-size: 0.6rem; font-weight: 700; letter-spacing: 0.24em; text-transform: uppercase;
-  color: var(--gold); margin-bottom: 14px;
+
+/* Left column: editorial text */
+.kv-hero-content { position: relative; z-index: 1; }
+
+.kv-hero-eyebrow {
+  font-size: 0.58rem; font-weight: 700; letter-spacing: 0.24em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 18px;
   display: flex; align-items: center; gap: 10px;
-  animation: kv-fade-up 0.45s var(--eout) both;
+  animation: kv-fade-up 0.4s var(--eout) both;
 }
-.kv-hero-label::before { content: ''; width: 22px; height: 1px; background: var(--gold); opacity: 0.45; }
-.kv-hero-title {
-  font-family: var(--serif); font-size: clamp(1.75rem, 2.8vw, 2.55rem);
-  font-weight: 300; color: var(--txt); letter-spacing: -0.035em;
-  line-height: 1.08; margin-bottom: 12px;
-  animation: kv-fade-up 0.5s var(--eout) 0.05s both;
+.kv-hero-eyebrow::before { content: ''; width: 20px; height: 1px; background: var(--gold); opacity: 0.45; flex-shrink: 0; }
+
+.kv-hero-h1 {
+  font-family: var(--serif); font-weight: 300; letter-spacing: -0.033em;
+  line-height: 1.06; margin: 0 0 18px;
+  animation: kv-fade-up 0.48s var(--eout) 0.05s both;
 }
-.kv-hero-title em { color: var(--gold); font-style: italic; font-weight: 300; }
-.kv-hero-title strong { font-weight: 400; color: var(--txt); }
+.kv-hero-h1-l1 {
+  display: block;
+  font-size: clamp(1.7rem, 2.6vw, 2.4rem);
+  color: var(--txt);
+}
+.kv-hero-h1-l2 {
+  display: block;
+  font-size: clamp(1.9rem, 2.95vw, 2.75rem);
+  color: var(--gold);
+  font-style: italic;
+  letter-spacing: -0.04em;
+  line-height: 1.0;
+}
+
+.kv-hero-rule {
+  width: 36px; height: 1px; background: var(--gold); opacity: 0.3; margin-bottom: 16px;
+  animation: kv-fade-up 0.52s var(--eout) 0.1s both;
+}
+
 .kv-hero-sub {
-  font-size: 0.86rem; color: var(--txt2); line-height: 1.6;
-  max-width: 480px; margin-bottom: 20px;
-  animation: kv-fade-up 0.55s var(--eout) 0.1s both;
+  font-size: 0.875rem; color: var(--txt2); line-height: 1.68;
+  max-width: 420px; margin-bottom: 6px;
+  animation: kv-fade-up 0.56s var(--eout) 0.14s both;
 }
-.kv-metrics {
-  display: flex; gap: 0; margin-bottom: 0;
-  animation: kv-fade-up 0.6s var(--eout) 0.15s both;
+.kv-hero-hint {
+  font-size: 0.72rem; color: var(--txt3); letter-spacing: 0.04em;
+  animation: kv-fade-up 0.6s var(--eout) 0.18s both;
 }
-.kv-metric { padding: 9px 18px; border: 1px solid var(--bd); border-right: none; background: var(--bg-2); }
-.kv-metric:first-child { border-radius: 6px 0 0 6px; }
-.kv-metric:last-child  { border-right: 1px solid var(--bd); border-radius: 0 6px 6px 0; }
-.kv-metric-val { font-family: var(--serif); font-size: 1.15rem; font-weight: 300; color: var(--gold); letter-spacing: -0.03em; line-height: 1; margin-bottom: 2px; }
-.kv-metric-lbl { font-size: 0.57rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--txt3); }
+
+/* Right column: AI preview card + mini metrics */
+.kv-hero-visual {
+  display: flex; flex-direction: column; gap: 10px;
+  position: relative; z-index: 1;
+  animation: kv-fade-up 0.52s var(--eout) 0.12s both;
+}
+
+.kv-hero-preview {
+  background: linear-gradient(145deg, var(--bg-2) 0%, var(--bg-3) 100%);
+  border: 1px solid var(--bd); border-radius: 8px; padding: 15px 16px;
+  position: relative; overflow: hidden;
+}
+.kv-hero-preview::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(196,164,107,0.5), transparent);
+}
+.kv-hero-preview-tag {
+  font-size: 0.5rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 9px;
+  display: flex; align-items: center; gap: 6px; opacity: 0.7;
+}
+.kv-hero-preview-tag::before {
+  content: ''; width: 5px; height: 5px; border-radius: 50%; background: #4ADE80;
+  box-shadow: 0 0 6px rgba(74,222,128,0.45); animation: kv-pulse-green 2.2s infinite; flex-shrink: 0;
+}
+.kv-hero-preview-text {
+  font-size: 0.75rem; color: var(--txt); line-height: 1.55; font-style: italic;
+  margin-bottom: 10px; letter-spacing: 0.01em;
+}
+.kv-hero-preview-foot {
+  font-size: 0.56rem; color: var(--txt3); letter-spacing: 0.1em; text-transform: uppercase;
+  display: flex; align-items: center; gap: 6px;
+}
+.kv-hero-preview-foot span { opacity: 0.5; }
+
+/* 2×2 mini metrics grid */
+.kv-mini-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.kv-mini-metric {
+  background: var(--bg-2); border: 1px solid var(--bd); border-radius: 6px; padding: 9px 11px;
+}
+.kv-mini-metric-val {
+  font-family: var(--serif); font-size: 1.05rem; font-weight: 300;
+  color: var(--gold); letter-spacing: -0.02em; line-height: 1; margin-bottom: 2px;
+}
+.kv-mini-metric-lbl {
+  font-size: 0.54rem; font-weight: 600; letter-spacing: 0.09em;
+  text-transform: uppercase; color: var(--txt3);
+}
 
 /* ── SECTION LABEL ───────────────────────────────────────────────────────── */
 .kv-section-label {
@@ -727,24 +800,46 @@ if not api_key:
 # ── Welcome ─────────────────────────────────────────────────────────────────
 if not st.session_state.messages:
 
-    # Hero
+    # Hero — composition deux colonnes éditoriale
     st.markdown("""
     <div class="kv-hero">
       <div class="kv-hero-deco"></div>
       <div class="kv-hero-deco-2"></div>
-      <div class="kv-hero-label">Intelligence VEFA</div>
-      <div class="kv-hero-title">
-        Votre centre de commande<br><em>immobilier premium</em>
+
+      <!-- Colonne gauche : texte éditorial -->
+      <div class="kv-hero-content">
+        <div class="kv-hero-eyebrow">K—VEFA · Intelligence Immobilière</div>
+        <h1 class="kv-hero-h1">
+          <span class="kv-hero-h1-l1">Centre de commande</span>
+          <span class="kv-hero-h1-l2">immobilier premium</span>
+        </h1>
+        <div class="kv-hero-rule"></div>
+        <p class="kv-hero-sub">
+          L'IA spécialisée VEFA qui prospecte, analyse et crée<br>
+          du contenu en quelques secondes — sans friction.
+        </p>
+        <p class="kv-hero-hint">Sélectionnez un module ou décrivez votre besoin ci-dessous.</p>
       </div>
-      <div class="kv-hero-sub">
-        L'IA spécialisée VEFA qui prospecte, analyse et crée du contenu<br>
-        en quelques secondes — sans formation, sans friction.
-      </div>
-      <div class="kv-metrics">
-        <div class="kv-metric"><div class="kv-metric-val">3–5h</div><div class="kv-metric-lbl">Gagnées / semaine</div></div>
-        <div class="kv-metric"><div class="kv-metric-val">+38%</div><div class="kv-metric-lbl">Taux de réponse</div></div>
-        <div class="kv-metric"><div class="kv-metric-val">&lt;60s</div><div class="kv-metric-lbl">Génération moy.</div></div>
-        <div class="kv-metric"><div class="kv-metric-val">Opus 4.7</div><div class="kv-metric-lbl">Modèle IA</div></div>
+
+      <!-- Colonne droite : aperçu IA + métriques -->
+      <div class="kv-hero-visual">
+        <div class="kv-hero-preview">
+          <div class="kv-hero-preview-tag">Généré à l'instant</div>
+          <div class="kv-hero-preview-text">
+            « 3 raisons pour lesquelles votre présence<br>digitale freine vos ventes VEFA... »
+          </div>
+          <div class="kv-hero-preview-foot">
+            <span>Post LinkedIn</span>
+            <span>·</span>
+            <span>CONTENU</span>
+          </div>
+        </div>
+        <div class="kv-mini-grid">
+          <div class="kv-mini-metric"><div class="kv-mini-metric-val">3–5h</div><div class="kv-mini-metric-lbl">Gagnées / sem.</div></div>
+          <div class="kv-mini-metric"><div class="kv-mini-metric-val">+38%</div><div class="kv-mini-metric-lbl">Taux réponse</div></div>
+          <div class="kv-mini-metric"><div class="kv-mini-metric-val">&lt;60s</div><div class="kv-mini-metric-lbl">Génération</div></div>
+          <div class="kv-mini-metric"><div class="kv-mini-metric-val">Opus 4.7</div><div class="kv-mini-metric-lbl">Modèle IA</div></div>
+        </div>
       </div>
     </div>
     """, unsafe_allow_html=True)
