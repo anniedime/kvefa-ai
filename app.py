@@ -4,8 +4,8 @@ import anthropic
 
 # ── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="K-VEFA AI",
-    page_icon="🏗️",
+    page_title="Kvass France AI",
+    page_icon="🏢",
     layout="centered",
 )
 
@@ -308,8 +308,8 @@ if not api_key:
 # ── Header ────────────────────────────────────────────────────────────────────
 st.markdown("""
 <div class="kvefa-header">
-  <h1>🏗️ K-VEFA AI</h1>
-  <p>Copilote IA pour la commercialisation VEFA & le marketing immobilier</p>
+  <h1>🏢 Kvass France AI</h1>
+  <p>Votre copilote IA — Prospection, Contenu & Marketing VEFA</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -326,7 +326,7 @@ st.markdown("""
 
 # ── API key saisie si absente ─────────────────────────────────────────────────
 if not api_key:
-    with st.expander("🔑 Configuration — Clé API Anthropic", expanded=True):
+    with st.expander("🔑 Configuration — Clé API", expanded=True):
         api_key = st.text_input(
             "Clé API",
             type="password",
@@ -362,7 +362,7 @@ if not st.session_state.messages:
 
 # ── Affichage historique ──────────────────────────────────────────────────────
 for msg in st.session_state.messages:
-    avatar = "🧑" if msg["role"] == "user" else "🏗️"
+    avatar = "🧑" if msg["role"] == "user" else "🏢"
     with st.chat_message(msg["role"], avatar=avatar):
         st.markdown(msg["content"])
 
@@ -374,7 +374,7 @@ if prompt:
     with st.chat_message("user", avatar="🧑"):
         st.markdown(prompt)
 
-    with st.chat_message("assistant", avatar="🏗️"):
+    with st.chat_message("assistant", avatar="🏢"):
         placeholder = st.empty()
         full_response = ""
 
