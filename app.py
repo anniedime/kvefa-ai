@@ -2,224 +2,512 @@ import os
 import streamlit as st
 import anthropic
 
-# ── Page config ───────────────────────────────────────────────────────────────
+# ── Config ────────────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="K—VEFA Intelligence",
     page_icon="⬡",
-    layout="centered",
-    initial_sidebar_state="collapsed",
+    layout="wide",
+    initial_sidebar_state="expanded",
 )
 
-# ── Design system — extrait de k-vefa.netlify.app ────────────────────────────
+# ── Design system ─────────────────────────────────────────────────────────────
 CSS = """
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
 <style>
-/* ── TOKENS ─────────────────────────────────────────────────────────────── */
+
+/* ═══ TOKENS ══════════════════════════════════════════════════════════════ */
 :root {
-  --bg:         #0A0E1A;
-  --bg-2:       #0F1424;
-  --bg-3:       #1A1F33;
-  --gold:       #B8975E;
-  --gold-lt:    #D4B574;
-  --gold-dim:   rgba(184,151,94,0.10);
-  --gold-border:rgba(184,151,94,0.22);
-  --cream:      #F8F4ED;
-  --txt:        #E8E2D5;
-  --txt-muted:  rgba(232,226,213,0.55);
-  --border:     rgba(232,226,213,0.09);
-  --serif:      'Fraunces', Georgia, serif;
-  --sans:       'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --ease:       cubic-bezier(.4,0,.2,1);
+  --bg:          #0A0E1A;
+  --bg-2:        #0F1424;
+  --bg-3:        #151A2E;
+  --bg-4:        #1A1F33;
+  --gold:        #B8975E;
+  --gold-lt:     #D4B574;
+  --gold-dk:     #A07F47;
+  --gold-8:      rgba(184,151,94,0.08);
+  --gold-12:     rgba(184,151,94,0.12);
+  --gold-18:     rgba(184,151,94,0.18);
+  --gold-25:     rgba(184,151,94,0.25);
+  --gold-border: rgba(184,151,94,0.22);
+  --cream:       #F8F4ED;
+  --cream-2:     #F3EFE6;
+  --txt:         #E8E2D5;
+  --txt-muted:   rgba(232,226,213,0.55);
+  --txt-soft:    rgba(232,226,213,0.35);
+  --border:      rgba(232,226,213,0.09);
+  --border-2:    rgba(232,226,213,0.05);
+  --serif:       'Fraunces', Georgia, serif;
+  --sans:        'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --ease:        cubic-bezier(.4,0,.2,1);
+  --shadow:      0 8px 40px -12px rgba(10,14,26,0.6);
+  --shadow-lg:   0 25px 80px -20px rgba(10,14,26,0.8);
+  --glow:        0 0 40px rgba(184,151,94,0.06);
 }
 
-/* ── BASE ───────────────────────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ═══ BASE ════════════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; }
 
-html, body, .stApp {
+html, body {
   background: var(--bg) !important;
   font-family: var(--sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "ss01","cv11";
+}
+
+.stApp {
+  background: var(--bg) !important;
   color: var(--txt);
 }
 
-/* Masquer tout le chrome Streamlit */
-#MainMenu, footer, header,
+/* Subtle architectural grid pattern */
+.stApp::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(184,151,94,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(184,151,94,0.025) 1px, transparent 1px);
+  background-size: 72px 72px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Gold radial glow from top */
+.stApp::after {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 400px;
+  background: radial-gradient(ellipse 80% 100% at 50% -10%, rgba(184,151,94,0.07) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Streamlit chrome - hide */
+#MainMenu, footer,
 [data-testid="stToolbar"],
 [data-testid="stDecoration"],
 [data-testid="stStatusWidget"],
 .stDeployButton { display: none !important; }
 
-/* Scrollbar premium */
-::-webkit-scrollbar { width: 3px; }
+/* Scrollbar */
+::-webkit-scrollbar { width: 3px; height: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb {
-  background: rgba(184,151,94,0.25);
-  border-radius: 2px;
-}
+::-webkit-scrollbar-thumb { background: rgba(184,151,94,0.2); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(184,151,94,0.4); }
 
-/* Sélection texte */
+/* Selection */
 ::selection { background: var(--gold); color: var(--bg); }
 
-/* ── CONTAINER ──────────────────────────────────────────────────────────── */
+/* ═══ LAYOUT ══════════════════════════════════════════════════════════════ */
 .block-container {
-  max-width: 760px !important;
-  padding: 0 24px 80px !important;
+  padding: 0 40px 100px !important;
+  max-width: 100% !important;
+  position: relative;
+  z-index: 1;
 }
 
-/* ── HEADER ─────────────────────────────────────────────────────────────── */
-.kv-header {
-  text-align: center;
-  padding: 52px 0 36px;
+/* ═══ SIDEBAR ═════════════════════════════════════════════════════════════ */
+[data-testid="stSidebar"] {
+  background: var(--bg-2) !important;
+  border-right: 1px solid var(--border) !important;
+  min-width: 240px !important;
+  max-width: 260px !important;
 }
 
-.kv-logo {
+[data-testid="stSidebarContent"] {
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+/* ── Sidebar Logo ── */
+.kv-sidebar-logo {
+  padding: 28px 22px 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+
+.kv-logotype {
   font-family: var(--serif);
-  font-size: 1.9rem;
+  font-size: 1.35rem;
   font-weight: 500;
   color: var(--txt);
   letter-spacing: -0.025em;
   line-height: 1;
-  margin-bottom: 10px;
-}
-.kv-logo em {
-  color: var(--gold);
-  font-style: normal;
-}
-
-.kv-tagline {
-  font-family: var(--sans);
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--txt-muted);
-}
-
-.kv-rule {
-  width: 36px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold), transparent);
-  margin: 18px auto 0;
-}
-
-/* ── MODES ──────────────────────────────────────────────────────────────── */
-.kv-modes {
   display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-  justify-content: center;
-  margin-bottom: 36px;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 4px;
 }
-.kv-mode {
-  font-family: var(--sans);
-  font-size: 0.67rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--gold);
-  background: var(--gold-dim);
-  border: 1px solid var(--gold-border);
-  border-radius: 2px;
-  padding: 5px 11px;
-  white-space: nowrap;
-}
+.kv-logotype em { color: var(--gold); font-style: normal; }
 
-/* ── SUGGESTIONS ────────────────────────────────────────────────────────── */
-.kv-intro {
-  font-size: 0.72rem;
+.kv-sidebar-sub {
+  font-size: 0.65rem;
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--txt-muted);
-  text-align: center;
-  margin-bottom: 16px;
+  color: var(--txt-soft);
 }
 
-.kv-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 9px;
-  margin-bottom: 36px;
+.kv-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--bg);
+  background: var(--gold);
+  border-radius: 2px;
+  padding: 2px 5px;
+  margin-left: 8px;
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
 }
 
-.kv-card {
-  background: var(--bg-2);
-  border: 1px solid var(--border);
+/* ── Sidebar Nav Label ── */
+.kv-nav-section {
+  padding: 16px 22px 6px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--txt-soft);
+}
+
+/* ── Sidebar Buttons (nav) ── */
+[data-testid="stSidebar"] [data-testid="stButton"] button {
+  background: transparent !important;
+  border: none !important;
+  color: var(--txt-muted) !important;
+  text-align: left !important;
+  font-family: var(--sans) !important;
+  font-size: 0.875rem !important;
+  font-weight: 400 !important;
+  padding: 8px 22px !important;
+  border-radius: 0 !important;
+  width: 100% !important;
+  transition: all .15s var(--ease) !important;
+  border-left: 2px solid transparent !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+[data-testid="stSidebar"] [data-testid="stButton"] button:hover {
+  background: var(--gold-8) !important;
+  color: var(--txt) !important;
+  border-left-color: var(--gold-border) !important;
+}
+[data-testid="stSidebar"] [data-testid="stButton"] button:active,
+[data-testid="stSidebar"] [data-testid="stButton"] button:focus {
+  background: var(--gold-12) !important;
+  color: var(--gold) !important;
+  border-left-color: var(--gold) !important;
+  box-shadow: none !important;
+}
+
+/* ── Sidebar Divider ── */
+.kv-sidebar-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 12px 22px;
+}
+
+/* ── Sidebar Status ── */
+.kv-sidebar-status {
+  padding: 14px 22px;
+  margin: 8px 12px;
+  background: var(--gold-8);
+  border: 1px solid var(--gold-border);
   border-radius: 5px;
-  padding: 15px 17px;
-  cursor: pointer;
-  transition: all .2s var(--ease);
-  text-align: left;
-  width: 100%;
 }
-.kv-card:hover {
-  border-color: var(--gold-border);
-  background: var(--bg-3);
-  transform: translateY(-1px);
-  box-shadow: 0 8px 32px -8px rgba(10,14,26,0.5);
+.kv-status-dot {
+  display: inline-block;
+  width: 6px; height: 6px;
+  background: var(--gold);
+  border-radius: 50%;
+  margin-right: 7px;
+  animation: kv-pulse 2s ease-in-out infinite;
 }
-.kv-card-tag {
-  font-size: 0.64rem;
+.kv-status-text {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--gold);
+  letter-spacing: 0.06em;
+}
+.kv-status-sub {
+  font-size: 0.65rem;
+  color: var(--txt-muted);
+  margin-top: 3px;
+  padding-left: 13px;
+}
+
+/* ── Sidebar Footer ── */
+.kv-sidebar-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0; right: 0;
+  padding: 16px 22px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-2);
+}
+.kv-sidebar-footer-text {
+  font-size: 0.65rem;
+  color: var(--txt-soft);
+  letter-spacing: 0.06em;
+}
+
+/* ═══ MAIN HEADER BAR ════════════════════════════════════════════════════ */
+.kv-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0 0;
+  margin-bottom: 32px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 18px;
+}
+.kv-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.kv-breadcrumb {
+  font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--gold);
-  margin-bottom: 5px;
+  color: var(--txt-soft);
 }
-.kv-card-text {
-  font-size: 0.875rem;
+.kv-breadcrumb span {
+  color: var(--gold);
+  margin: 0 6px;
+}
+.kv-topbar-title {
+  font-family: var(--serif);
+  font-size: 1.1rem;
+  font-weight: 500;
   color: var(--txt);
-  line-height: 1.45;
-  font-weight: 400;
+  letter-spacing: -0.02em;
 }
 
-/* ── CHAT MESSAGES ──────────────────────────────────────────────────────── */
+/* ═══ MODULE CARDS ═══════════════════════════════════════════════════════ */
+.kv-module {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 22px 20px 18px;
+  margin-bottom: -1px;
+  transition: all .22s var(--ease);
+  position: relative;
+  overflow: hidden;
+}
+.kv-module::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-25), transparent);
+  opacity: 0;
+  transition: opacity .22s var(--ease);
+}
+.kv-module:hover { border-color: var(--gold-border); background: var(--bg-3); }
+.kv-module:hover::before { opacity: 1; }
+
+.kv-module-icon {
+  width: 36px; height: 36px;
+  background: var(--gold-12);
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold);
+  font-size: 0.95rem;
+  margin-bottom: 14px;
+}
+
+.kv-module-cat {
+  font-size: 0.63rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+
+.kv-module-title {
+  font-family: var(--serif);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--txt);
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+  line-height: 1.2;
+}
+
+.kv-module-desc {
+  font-size: 0.8rem;
+  color: var(--txt-muted);
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.kv-module-arrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--gold);
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+  transition: all .15s var(--ease);
+}
+.kv-module:hover .kv-module-arrow {
+  opacity: 1;
+  letter-spacing: 0.1em;
+}
+
+/* Module button overlay */
+.stMarkdown:has(.kv-module) ~ [data-testid="stButton"] > button,
+[data-testid="stVerticalBlock"] > [data-testid="stButton"]:last-child > button {
+  background: var(--bg-2) !important;
+  border: 1px solid var(--border) !important;
+  border-top: none !important;
+  border-radius: 0 0 6px 6px !important;
+  color: var(--gold) !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  padding: 10px 20px !important;
+  transition: all .2s var(--ease) !important;
+}
+
+/* ═══ WELCOME SECTION ════════════════════════════════════════════════════ */
+.kv-welcome {
+  text-align: center;
+  padding: 20px 0 36px;
+}
+.kv-welcome-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 10px;
+}
+.kv-welcome-title {
+  font-family: var(--serif);
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  font-weight: 500;
+  color: var(--txt);
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  margin-bottom: 10px;
+}
+.kv-welcome-title em { color: var(--gold); font-style: normal; }
+.kv-welcome-sub {
+  font-size: 0.9rem;
+  color: var(--txt-muted);
+  line-height: 1.6;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* ═══ SECTION LABELS ═════════════════════════════════════════════════════ */
+.kv-section-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--txt-soft);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.kv-section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ═══ CHAT ═══════════════════════════════════════════════════════════════ */
+.kv-conv-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.kv-conv-title {
+  font-family: var(--serif);
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--txt-muted);
+  letter-spacing: -0.01em;
+}
+.kv-conv-count {
+  font-size: 0.65rem;
+  color: var(--gold);
+  background: var(--gold-8);
+  border: 1px solid var(--gold-border);
+  border-radius: 2px;
+  padding: 2px 7px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
 [data-testid="stChatMessage"] {
   background: transparent !important;
   padding: 0 !important;
-  margin-bottom: 4px !important;
-  gap: 12px !important;
+  gap: 14px !important;
+  margin-bottom: 6px !important;
+  max-width: 860px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-/* Avatar user */
+/* User avatar */
 [data-testid="stChatMessageAvatarUser"] {
-  background: rgba(248,244,237,0.12) !important;
+  background: rgba(248,244,237,0.1) !important;
+  border: 1px solid rgba(248,244,237,0.15) !important;
   border-radius: 4px !important;
-  width: 30px !important;
-  min-width: 30px !important;
-  height: 30px !important;
-  font-size: 0.8rem !important;
+  width: 28px !important;
+  min-width: 28px !important;
+  height: 28px !important;
+  font-size: 0.7rem !important;
   color: var(--cream) !important;
 }
 
-/* Avatar assistant */
+/* Assistant avatar */
 [data-testid="stChatMessageAvatarAssistant"] {
-  background: var(--gold) !important;
+  background: linear-gradient(135deg, var(--gold-lt) 0%, var(--gold) 100%) !important;
   border-radius: 4px !important;
-  width: 30px !important;
-  min-width: 30px !important;
-  height: 30px !important;
-  font-size: 0.8rem !important;
+  width: 28px !important;
+  min-width: 28px !important;
+  height: 28px !important;
+  font-size: 0.7rem !important;
   color: var(--bg) !important;
+  box-shadow: 0 4px 12px rgba(184,151,94,0.25) !important;
 }
 
-/* Contenu user */
+/* User message */
 [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"])
 [data-testid="stChatMessageContent"] {
   background: var(--cream) !important;
   color: #0A0E1A !important;
   border-radius: 2px 8px 8px 8px !important;
-  padding: 13px 17px !important;
-  font-size: 0.925rem !important;
+  padding: 12px 17px !important;
+  font-size: 0.92rem !important;
   line-height: 1.65 !important;
-  box-shadow: 0 2px 12px -4px rgba(10,14,26,0.18) !important;
   border: none !important;
-  max-width: 88% !important;
+  box-shadow: 0 2px 16px -4px rgba(10,14,26,0.2) !important;
+  max-width: 78% !important;
 }
 
-/* Contenu assistant */
+/* Assistant message */
 [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"])
 [data-testid="stChatMessageContent"] {
   background: var(--bg-2) !important;
@@ -227,90 +515,109 @@ html, body, .stApp {
   border-radius: 8px 2px 8px 8px !important;
   border: 1px solid var(--border) !important;
   padding: 18px 22px !important;
-  font-size: 0.925rem !important;
-  line-height: 1.75 !important;
-  max-width: 92% !important;
+  font-size: 0.92rem !important;
+  line-height: 1.78 !important;
+  max-width: 90% !important;
+  box-shadow: var(--shadow) !important;
 }
 
-/* Typographie dans les messages */
+/* Message typography */
 [data-testid="stChatMessageContent"] p {
-  margin-bottom: 0.65em;
-  color: inherit;
+  margin-bottom: 0.6em !important;
+  color: inherit !important;
 }
-[data-testid="stChatMessageContent"] p:last-child { margin-bottom: 0; }
+[data-testid="stChatMessageContent"] p:last-child { margin-bottom: 0 !important; }
 
 [data-testid="stChatMessageContent"] h1,
 [data-testid="stChatMessageContent"] h2,
 [data-testid="stChatMessageContent"] h3 {
   font-family: var(--serif) !important;
   font-weight: 500 !important;
-  color: var(--txt) !important;
   letter-spacing: -0.02em !important;
-  margin: 1em 0 0.4em !important;
   line-height: 1.2 !important;
+  margin: 1.1em 0 0.4em !important;
 }
-[data-testid="stChatMessageContent"] h2 { font-size: 1.1rem !important; }
-[data-testid="stChatMessageContent"] h3 { font-size: 1rem !important; }
+[data-testid="stChatMessageContent"] h2 {
+  font-size: 1.05rem !important;
+  color: var(--txt) !important;
+}
+[data-testid="stChatMessageContent"] h3 {
+  font-size: 0.95rem !important;
+  color: var(--gold-lt) !important;
+}
 
 [data-testid="stChatMessageContent"] strong {
   color: var(--txt) !important;
   font-weight: 600 !important;
 }
 
+[data-testid="stChatMessageContent"] em {
+  color: var(--gold-lt) !important;
+}
+
 [data-testid="stChatMessageContent"] ul,
 [data-testid="stChatMessageContent"] ol {
-  padding-left: 1.2em !important;
-  margin: 0.4em 0 0.6em !important;
+  padding-left: 1.1em !important;
+  margin: 0.35em 0 0.5em !important;
 }
 [data-testid="stChatMessageContent"] li {
-  margin-bottom: 0.3em !important;
+  margin-bottom: 0.28em !important;
   line-height: 1.6 !important;
 }
 
 [data-testid="stChatMessageContent"] code {
-  background: rgba(184,151,94,0.1) !important;
+  background: var(--gold-8) !important;
   color: var(--gold-lt) !important;
+  border: 1px solid var(--gold-border) !important;
   border-radius: 3px !important;
   padding: 1px 5px !important;
-  font-size: 0.85em !important;
+  font-size: 0.83em !important;
 }
 
 [data-testid="stChatMessageContent"] hr {
-  border-color: var(--border) !important;
+  border: none !important;
+  border-top: 1px solid var(--border) !important;
   margin: 1em 0 !important;
 }
 
-/* User message text color overrides */
+[data-testid="stChatMessageContent"] blockquote {
+  border-left: 2px solid var(--gold-border) !important;
+  padding-left: 14px !important;
+  color: var(--txt-muted) !important;
+  margin: 0.6em 0 !important;
+}
+
+/* User message text overrides */
 [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"])
 [data-testid="stChatMessageContent"] p,
 [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"])
 [data-testid="stChatMessageContent"] strong,
 [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"])
-[data-testid="stChatMessageContent"] h1,
-[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"])
 [data-testid="stChatMessageContent"] h2,
 [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"])
 [data-testid="stChatMessageContent"] h3 {
-  color: #0A0E1A !important;
+  color: #1A1F33 !important;
 }
 
-/* ── INPUT ──────────────────────────────────────────────────────────────── */
+/* ═══ INPUT AREA ══════════════════════════════════════════════════════════ */
 .stChatInputContainer {
-  background: var(--bg) !important;
-  border-top: 1px solid var(--border) !important;
-  padding: 14px 0 12px !important;
+  background: linear-gradient(180deg, transparent 0%, var(--bg) 30%) !important;
+  border-top: none !important;
+  padding: 12px 0 16px !important;
 }
 
+/* Input wrapper styling */
 .stChatInput > div {
   background: var(--bg-2) !important;
   border: 1px solid var(--border) !important;
-  border-radius: 6px !important;
+  border-radius: 8px !important;
   transition: border-color .2s var(--ease), box-shadow .2s var(--ease) !important;
+  max-width: 860px !important;
+  margin: 0 auto !important;
 }
-
 .stChatInput > div:focus-within {
-  border-color: rgba(184,151,94,0.4) !important;
-  box-shadow: 0 0 0 3px rgba(184,151,94,0.07) !important;
+  border-color: rgba(184,151,94,0.38) !important;
+  box-shadow: 0 0 0 3px rgba(184,151,94,0.06), var(--shadow) !important;
 }
 
 .stChatInput textarea {
@@ -318,56 +625,58 @@ html, body, .stApp {
   color: var(--txt) !important;
   font-family: var(--sans) !important;
   font-size: 0.935rem !important;
-  line-height: 1.55 !important;
-  padding: 13px 16px !important;
-  caret-color: var(--gold) !important;
+  line-height: 1.6 !important;
+  padding: 14px 18px !important;
   border: none !important;
   box-shadow: none !important;
+  caret-color: var(--gold) !important;
+  resize: none !important;
 }
-
 .stChatInput textarea::placeholder {
-  color: var(--txt-muted) !important;
+  color: var(--txt-soft) !important;
   font-size: 0.9rem !important;
 }
 
-/* Bouton envoi */
-[data-testid="stChatInputSubmitButton"] button,
-.stChatInputContainer button[kind="primaryFormSubmit"] {
+/* Submit button */
+[data-testid="stChatInputSubmitButton"] button {
   background: var(--gold) !important;
-  border-radius: 4px !important;
   border: none !important;
+  border-radius: 5px !important;
   color: var(--bg) !important;
-  transition: all .2s var(--ease) !important;
+  width: 34px !important;
+  height: 34px !important;
+  transition: all .18s var(--ease) !important;
 }
-[data-testid="stChatInputSubmitButton"] button:hover,
-.stChatInputContainer button[kind="primaryFormSubmit"]:hover {
-  background: #A07F47 !important;
+[data-testid="stChatInputSubmitButton"] button:hover {
+  background: var(--gold-dk) !important;
   transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(184,151,94,0.3) !important;
 }
 
-/* ── BOUTON RESET ───────────────────────────────────────────────────────── */
-div[data-testid="stButton"] > button {
+/* ═══ BUTTONS (main area) ════════════════════════════════════════════════ */
+/* Main content buttons (reset + card CTAs) */
+[data-testid="stMain"] [data-testid="stButton"] button,
+.main [data-testid="stButton"] button {
   background: transparent !important;
   color: var(--txt-muted) !important;
   border: 1px solid var(--border) !important;
-  border-radius: 3px !important;
+  border-radius: 4px !important;
   font-family: var(--sans) !important;
-  font-size: 0.7rem !important;
+  font-size: 0.72rem !important;
   font-weight: 600 !important;
-  letter-spacing: 0.12em !important;
+  letter-spacing: 0.1em !important;
   text-transform: uppercase !important;
-  padding: 7px 18px !important;
+  padding: 8px 20px !important;
   transition: all .2s var(--ease) !important;
-  display: block !important;
-  margin: 0 auto !important;
 }
-div[data-testid="stButton"] > button:hover {
-  background: rgba(232,226,213,0.05) !important;
-  border-color: rgba(232,226,213,0.22) !important;
-  color: var(--txt) !important;
+[data-testid="stMain"] [data-testid="stButton"] button:hover,
+.main [data-testid="stButton"] button:hover {
+  background: var(--gold-8) !important;
+  border-color: var(--gold-border) !important;
+  color: var(--gold) !important;
 }
 
-/* ── API KEY ────────────────────────────────────────────────────────────── */
+/* ═══ API KEY ═════════════════════════════════════════════════════════════ */
 [data-testid="stExpander"] {
   background: var(--bg-2) !important;
   border: 1px solid var(--border) !important;
@@ -375,8 +684,9 @@ div[data-testid="stButton"] > button:hover {
 }
 [data-testid="stExpander"] summary {
   color: var(--txt-muted) !important;
-  font-size: 0.85rem !important;
+  font-size: 0.82rem !important;
   font-family: var(--sans) !important;
+  padding: 12px 16px !important;
 }
 [data-testid="stTextInput"] input {
   background: var(--bg-3) !important;
@@ -386,69 +696,62 @@ div[data-testid="stButton"] > button:hover {
   font-family: var(--sans) !important;
   font-size: 0.9rem !important;
   caret-color: var(--gold) !important;
+  padding: 10px 14px !important;
 }
 [data-testid="stTextInput"] input:focus {
   border-color: var(--gold-border) !important;
   box-shadow: 0 0 0 2px rgba(184,151,94,0.07) !important;
+  outline: none !important;
 }
 [data-testid="stTextInput"] label {
   color: var(--txt-muted) !important;
-  font-size: 0.8rem !important;
+  font-size: 0.78rem !important;
+  font-weight: 500 !important;
 }
 
-/* ── ALERTS ─────────────────────────────────────────────────────────────── */
+/* Info/error */
 [data-testid="stAlert"] {
-  background: rgba(184,151,94,0.06) !important;
+  background: var(--gold-8) !important;
   border: 1px solid var(--gold-border) !important;
   border-radius: 5px !important;
   color: var(--txt) !important;
+  font-size: 0.88rem !important;
 }
 
-/* ── CURSOR ANIMATION ───────────────────────────────────────────────────── */
+/* ═══ COLUMNS ════════════════════════════════════════════════════════════ */
+[data-testid="stColumns"] {
+  gap: 12px !important;
+}
+
+/* ═══ ANIMATIONS ══════════════════════════════════════════════════════════ */
 @keyframes kv-blink {
   0%, 100% { opacity: 1; }
-  50%       { opacity: 0; }
+  50%       { opacity: 0.15; }
 }
+@keyframes kv-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.6; transform: scale(0.85); }
+}
+@keyframes kv-fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 .kv-cursor {
   display: inline-block;
   width: 2px;
-  height: 0.9em;
+  height: 0.88em;
   background: var(--gold);
-  margin-left: 2px;
+  margin-left: 1px;
   border-radius: 1px;
   animation: kv-blink 1.1s var(--ease) infinite;
   vertical-align: text-bottom;
 }
 
-/* ── FOOTER DISCRET ─────────────────────────────────────────────────────── */
-.kv-footer {
-  text-align: center;
-  padding: 20px 0 0;
-  font-size: 0.67rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: rgba(232,226,213,0.2);
+.kv-fade-up {
+  animation: kv-fade-up .3s var(--ease) both;
 }
 
-/* ── DIVIDER CONVERSATION ───────────────────────────────────────────────── */
-.kv-conv-label {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 28px;
-  font-size: 0.67rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(232,226,213,0.22);
-}
-.kv-conv-label::before,
-.kv-conv-label::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-}
 </style>
 """
 
@@ -487,9 +790,6 @@ Tu écris comme :
 --------------------------------------------------
 # OBJECTIFS PRINCIPAUX
 --------------------------------------------------
-
-Tes priorités sont :
-
 1. Générer rapidement du contenu à forte valeur
 2. Transformer une idée en contenus multi-plateformes
 3. Générer des opportunités commerciales
@@ -504,259 +804,272 @@ Tes priorités sont :
 --------------------------------------------------
 # CONNAISSANCE METIER
 --------------------------------------------------
+Tu comprends parfaitement les lancements VEFA, les promoteurs immobiliers, les commercialisateurs, les sites programmes, les sélecteurs de lots, les problématiques marketing immobilières, les workflows commerciaux VEFA, les enjeux de visibilité, les problématiques de génération de leads, les dépendances entre prestataires, les retards de lancement.
 
-Tu comprends parfaitement :
-- les lancements VEFA,
-- les promoteurs immobiliers,
-- les commercialisateurs,
-- les sites programmes,
-- les sélecteurs de lots,
-- les problématiques marketing immobilières,
-- les workflows commerciaux VEFA,
-- les enjeux de visibilité,
-- les problématiques de génération de leads,
-- les dépendances entre prestataires,
-- les retards de lancement,
-- les problématiques de coordination marketing/commercial.
-
-Tu connais :
-- le vocabulaire métier,
-- les objections des promoteurs,
-- les KPIs commerciaux,
-- les enjeux ROI,
-- les problématiques de branding immobilier,
-- les tendances du marché immobilier neuf.
-
---------------------------------------------------
-# ROLE DU SCRAPING
---------------------------------------------------
-
-Le scraping est utilisé comme un système d'enrichissement intelligent.
-
-Quand l'utilisateur fournit :
-- une URL,
-- un profil LinkedIn,
-- un nom d'entreprise,
-- un site web,
-- un promoteur,
-- un programme immobilier,
-
-tu dois automatiquement utiliser l'outil web_fetch pour récupérer les informations, puis :
-
-1. Extraire les informations utiles
-2. Identifier les signaux business
-3. Détecter les opportunités marketing
-4. Détecter les faiblesses de communication
-5. Identifier des angles de prospection
-6. Générer des insights exploitables.
-
-Le scraping doit toujours servir :
-- la prospection,
-- le contenu,
-- l'analyse commerciale,
-- la génération d'idées.
+Tu connais le vocabulaire métier, les objections des promoteurs, les KPIs commerciaux, les enjeux ROI, les problématiques de branding immobilier, les tendances du marché immobilier neuf.
 
 --------------------------------------------------
 # MODES OPERATIONNELS
 --------------------------------------------------
-
-Tu peux fonctionner dans plusieurs modes et les détecter automatiquement.
-
-## MODE CONTENT → Création de contenu multi-réseaux.
-## MODE REPURPOSING → Transformation d'un contenu en plusieurs formats.
-## MODE PROSPECTION → Création de messages commerciaux personnalisés.
-## MODE ANALYSE → Audit rapide d'un promoteur ou d'une présence digitale.
-## MODE VEILLE → Analyse de tendances et détection d'opportunités.
-## MODE IDEATION → Génération d'idées, hooks et angles marketing.
-
---------------------------------------------------
-# CREATION DE CONTENU
---------------------------------------------------
-
-Quand tu crées du contenu :
-
-Tu dois :
-- écrire de façon conversationnelle,
-- optimiser pour lecture mobile,
-- éviter le ton corporate,
-- éviter le jargon IA,
-- privilégier les phrases courtes,
-- favoriser l'engagement,
-- utiliser des hooks forts,
-- utiliser des insights métier,
-- rester crédible et concret.
-
-Le contenu doit être : expert, simple, moderne, humain, orienté business, utile, non générique.
+MODE CONTENT → Création de contenu multi-réseaux.
+MODE REPURPOSING → Transformation d'un contenu en plusieurs formats.
+MODE PROSPECTION → Création de messages commerciaux personnalisés.
+MODE ANALYSE → Audit rapide d'un promoteur ou d'une présence digitale.
+MODE VEILLE → Analyse de tendances et détection d'opportunités.
+MODE IDEATION → Génération d'idées, hooks et angles marketing.
 
 --------------------------------------------------
 # REGLES LINKEDIN
 --------------------------------------------------
-
-Quand tu écris un post LinkedIn :
-
-Tu dois :
-- générer 5 hooks,
-- générer 3 CTA,
-- optimiser le temps de lecture,
-- créer de la curiosité,
-- utiliser des lignes courtes,
-- éviter les blocs longs,
-- favoriser les commentaires,
-- éviter le ton vendeur.
-
-Le post doit contenir : un hook, un développement, un insight, une conclusion, un CTA subtil.
-
---------------------------------------------------
-# GENERATION D'ANGLES
---------------------------------------------------
-
-Quand on te donne un sujet, génère :
-- angles business, émotionnels, ROI, différenciants, éducatifs, "pain points", controversés crédibles.
-
-Evite : les banalités, les angles génériques, les formulations vues partout.
+Quand tu écris un post LinkedIn : génère 5 hooks, 3 CTA, utilise lignes courtes, évite le ton vendeur.
+Structure : hook → développement → insight → conclusion → CTA subtil.
 
 --------------------------------------------------
 # MODE ANALYSE PROMOTEUR
 --------------------------------------------------
-
-Quand tu analyses un promoteur, fournis :
-
-## SCORE GLOBAL /100
-## FORCES
-## FAIBLESSES
-## OPPORTUNITES
-## QUICK WINS
-## ANGLE DE PROSPECTION
-## ACTIONS PRIORITAIRES
-
---------------------------------------------------
-# MODE PROSPECTION
---------------------------------------------------
-
-Quand tu génères un message commercial :
-
-Tu dois : personnaliser l'approche, mentionner un élément spécifique, rester naturel, être crédible, être court, créer de la curiosité, éviter les formulations génériques.
-
-Tu peux générer : DM LinkedIn, emails, relances, séquences de suivi.
-
---------------------------------------------------
-# STRUCTURE DE SORTIE
---------------------------------------------------
-
-Quand pertinent, structure les réponses ainsi :
-
-## CONTEXTE
-## INSIGHTS
-## OPPORTUNITES
-## CONTENU GENERE
-## ANGLE COMMERCIAL
-## ACTIONS RECOMMANDEES
+Fournis : SCORE GLOBAL /100, FORCES, FAIBLESSES, OPPORTUNITES, QUICK WINS, ANGLE DE PROSPECTION, ACTIONS PRIORITAIRES.
 
 --------------------------------------------------
 # STYLE D'ECRITURE
 --------------------------------------------------
-
-Tu écris toujours : comme un humain, comme un expert métier, de façon concise, crédible, moderne, business.
-Tu évites : les clichés IA, le ton corporate vide, les formulations génériques, les réponses vagues.
-Tu dois agir comme : un copilote commercial, un accélérateur de contenu, un assistant marketing VEFA ultra réactif."""
+Tu écris : comme un humain, comme un expert métier, de façon concise, crédible, moderne, business.
+Tu évites : les clichés IA, le ton corporate vide, les formulations génériques, les réponses vagues."""
 
 TOOLS = [
     {"type": "web_search_20260209", "name": "web_search"},
     {"type": "web_fetch_20260209", "name": "web_fetch"},
 ]
 
-SUGGESTIONS = [
-    ("CONTENU",      "Crée un post LinkedIn sur les délais VEFA"),
-    ("ANALYSE",      "Analyse le site d'un promoteur"),
-    ("PROSPECTION",  "Génère un DM pour prospecter Nexity"),
-    ("REPURPOSING",  "Décline un sujet en 5 formats"),
-    ("IDÉATION",     "Génère 10 hooks sur la réservation VEFA"),
-    ("AUDIT",        "Audit marketing d'un programme neuf"),
+# ── Module definitions ────────────────────────────────────────────────────────
+MODULES = [
+    {
+        "icon": "✦", "cat": "CONTENU", "title": "Création de contenu",
+        "desc": "Posts LinkedIn, captions Instagram, scripts Reels, emails",
+        "prompt": "Crée un post LinkedIn premium sur les délais de livraison VEFA et la communication des promoteurs",
+    },
+    {
+        "icon": "◈", "cat": "PROSPECTION", "title": "Prospection B2B",
+        "desc": "DM LinkedIn, emails froids, séquences de relance personnalisées",
+        "prompt": "Génère un DM LinkedIn percutant pour prospecter un directeur marketing de promoteur immobilier",
+    },
+    {
+        "icon": "◎", "cat": "ANALYSE", "title": "Audit promoteur",
+        "desc": "Score digital /100, forces, faiblesses, angles d'approche",
+        "prompt": "Analyse la présence digitale de Nexity et génère un audit complet avec score et angle de prospection",
+    },
+    {
+        "icon": "⊞", "cat": "REPURPOSING", "title": "Multi-formats",
+        "desc": "1 idée → 6 formats : LinkedIn, Instagram, Reel, email, DM",
+        "prompt": "Décline ce sujet en 6 formats : les erreurs de communication lors d'un lancement VEFA",
+    },
+    {
+        "icon": "◇", "cat": "IDÉATION", "title": "Hooks & Angles",
+        "desc": "10 hooks, 7 angles business, émotionnels, ROI, pain points",
+        "prompt": "Génère 10 hooks LinkedIn ultra-percutants sur la génération de leads VEFA pour les promoteurs",
+    },
+    {
+        "icon": "◉", "cat": "VEILLE", "title": "Veille & Opportunités",
+        "desc": "Tendances marché, signaux faibles, opportunités commerciales",
+        "prompt": "Analyse les tendances du marché immobilier neuf en France et identifie les opportunités commerciales pour une agence marketing VEFA",
+    },
 ]
 
-MODES = ["Contenu", "Repurposing", "Prospection", "Analyse", "Veille", "Idéation"]
+NAV_ITEMS = [
+    ("✦", "Contenu"),
+    ("◈", "Prospection"),
+    ("◎", "Analyse"),
+    ("⊞", "Repurposing"),
+    ("◇", "Idéation"),
+    ("◉", "Veille"),
+]
+
+QUICK_ACTIONS = [
+    "Post LinkedIn sur les délais VEFA",
+    "DM de prospection Nexity",
+    "Audit d'un site promoteur",
+    "10 hooks réservation VEFA",
+]
 
 # ── API key ───────────────────────────────────────────────────────────────────
 api_key = st.secrets.get("ANTHROPIC_API_KEY", "") if hasattr(st, "secrets") else ""
 if not api_key:
     api_key = os.environ.get("ANTHROPIC_API_KEY", "")
 
-# ── Inject design system ──────────────────────────────────────────────────────
-st.markdown(CSS, unsafe_allow_html=True)
-
-# ── Header ────────────────────────────────────────────────────────────────────
-st.markdown("""
-<div class="kv-header">
-  <div class="kv-logo">K<em>—</em>VEFA</div>
-  <div class="kv-tagline">Intelligence · Prospection · Contenu · Analyse</div>
-  <div class="kv-rule"></div>
-</div>
-""", unsafe_allow_html=True)
-
-# ── Modes bar ─────────────────────────────────────────────────────────────────
-modes_html = '<div class="kv-modes">' + "".join(
-    f'<span class="kv-mode">{m}</span>' for m in MODES
-) + "</div>"
-st.markdown(modes_html, unsafe_allow_html=True)
-
-# ── API key saisie si absente ─────────────────────────────────────────────────
-if not api_key:
-    with st.expander("🔑 Configurer la clé API", expanded=True):
-        api_key = st.text_input(
-            "Clé API Anthropic",
-            type="password",
-            placeholder="sk-ant-...",
-            help="console.anthropic.com → API Keys",
-        )
-    if not api_key:
-        st.info("Entrez votre clé API pour accéder à K—VEFA Intelligence.")
-        st.stop()
-
 # ── Session state ─────────────────────────────────────────────────────────────
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# ── Reset ─────────────────────────────────────────────────────────────────────
-if st.session_state.messages:
-    if st.button("↺  Nouvelle conversation"):
-        st.session_state.messages = []
-        st.rerun()
-    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+# ── Inject CSS ────────────────────────────────────────────────────────────────
+st.markdown(CSS, unsafe_allow_html=True)
 
-# ── Suggestions si conversation vide ─────────────────────────────────────────
-if not st.session_state.messages:
-    st.markdown('<div class="kv-intro">Par où souhaitez-vous commencer ?</div>', unsafe_allow_html=True)
+# ══════════════════════════════════════════════════════════════════════════════
+# SIDEBAR
+# ══════════════════════════════════════════════════════════════════════════════
+with st.sidebar:
 
-    st.markdown('<div class="kv-grid">', unsafe_allow_html=True)
-    cols = st.columns(2)
-    for i, (tag, text) in enumerate(SUGGESTIONS):
-        with cols[i % 2]:
-            if st.button(
-                f"**{tag}**\n{text}",
-                key=f"sug_{i}",
-                use_container_width=True,
-            ):
-                st.session_state.messages.append({"role": "user", "content": text})
-                st.rerun()
-    st.markdown("</div>", unsafe_allow_html=True)
-
+    # Logo
     st.markdown("""
-    <div class="kv-footer">
-      K—VEFA Intelligence &nbsp;·&nbsp; Propulsé par Claude Opus
+    <div class="kv-sidebar-logo">
+      <div class="kv-logotype">K<em>—</em>VEFA<span class="kv-badge">AI</span></div>
+      <div class="kv-sidebar-sub">Intelligence Immobilière</div>
     </div>
     """, unsafe_allow_html=True)
 
-# ── Historique conversation ───────────────────────────────────────────────────
-if st.session_state.messages:
-    st.markdown('<div class="kv-conv-label">Conversation</div>', unsafe_allow_html=True)
+    # Navigation
+    st.markdown('<div class="kv-nav-section">Modules</div>', unsafe_allow_html=True)
 
-for msg in st.session_state.messages:
-    avatar = "◇" if msg["role"] == "user" else "◆"
-    with st.chat_message(msg["role"], avatar=avatar):
-        st.markdown(msg["content"])
+    for icon, label in NAV_ITEMS:
+        if st.button(f"{icon}  {label}", key=f"nav_{label}", use_container_width=True):
+            mod = next((m for m in MODULES if m["cat"].upper() == label.upper() or m["title"].upper() == label.upper()), None)
+            if mod:
+                st.session_state.messages.append({"role": "user", "content": mod["prompt"]})
+                st.rerun()
+
+    st.markdown('<div class="kv-sidebar-divider"></div>', unsafe_allow_html=True)
+
+    # Quick actions
+    st.markdown('<div class="kv-nav-section">Accès rapide</div>', unsafe_allow_html=True)
+
+    for qa in QUICK_ACTIONS:
+        label_short = qa[:32] + ("…" if len(qa) > 32 else "")
+        if st.button(f"→  {label_short}", key=f"qa_{qa[:8]}", use_container_width=True):
+            st.session_state.messages.append({"role": "user", "content": qa})
+            st.rerun()
+
+    st.markdown('<div class="kv-sidebar-divider"></div>', unsafe_allow_html=True)
+
+    # Session info
+    if st.session_state.messages:
+        msg_count = len([m for m in st.session_state.messages if m["role"] == "user"])
+        st.markdown(f"""
+        <div class="kv-sidebar-status">
+          <div><span class="kv-status-dot"></span><span class="kv-status-text">Session active</span></div>
+          <div class="kv-status-sub">{msg_count} échange{"s" if msg_count > 1 else ""}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        if st.button("↺  Nouvelle conversation", key="sidebar_reset", use_container_width=True):
+            st.session_state.messages = []
+            st.rerun()
+    else:
+        st.markdown("""
+        <div class="kv-sidebar-status">
+          <div><span class="kv-status-dot"></span><span class="kv-status-text">Prêt</span></div>
+          <div class="kv-status-sub">Sélectionnez un module</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # API key if needed
+    if not api_key:
+        st.markdown('<div class="kv-sidebar-divider"></div>', unsafe_allow_html=True)
+        with st.expander("🔑 Clé API", expanded=True):
+            api_key = st.text_input(
+                "Clé Anthropic",
+                type="password",
+                placeholder="sk-ant-...",
+            )
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MAIN CONTENT
+# ══════════════════════════════════════════════════════════════════════════════
+
+if not api_key:
+    st.markdown("""
+    <div style="text-align:center; padding: 80px 0; color: rgba(232,226,213,0.4); font-size: 0.85rem;">
+      Configurez votre clé API dans la sidebar pour accéder à K—VEFA Intelligence.
+    </div>
+    """, unsafe_allow_html=True)
+    st.stop()
+
+# ── No messages: welcome + module grid ───────────────────────────────────────
+if not st.session_state.messages:
+
+    # Top bar
+    st.markdown("""
+    <div class="kv-topbar">
+      <div class="kv-topbar-left">
+        <div class="kv-breadcrumb">K—VEFA <span>›</span> Tableau de bord</div>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Welcome
+    st.markdown("""
+    <div class="kv-welcome kv-fade-up">
+      <div class="kv-welcome-label">Intelligence VEFA</div>
+      <div class="kv-welcome-title">Que souhaitez-vous<br>accomplir <em>aujourd'hui</em> ?</div>
+      <div class="kv-welcome-sub">
+        Sélectionnez un module ou décrivez directement votre besoin.<br>
+        L'agent détecte automatiquement le mode adapté.
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Module grid — row 1
+    st.markdown('<div class="kv-section-label">Modules disponibles</div>', unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns(3, gap="small")
+    cols_row1 = [col1, col2, col3]
+
+    for i, mod in enumerate(MODULES[:3]):
+        with cols_row1[i]:
+            st.markdown(f"""
+            <div class="kv-module">
+              <div class="kv-module-icon">{mod["icon"]}</div>
+              <div class="kv-module-cat">{mod["cat"]}</div>
+              <div class="kv-module-title">{mod["title"]}</div>
+              <div class="kv-module-desc">{mod["desc"]}</div>
+              <div class="kv-module-arrow">Démarrer →</div>
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button("Ouvrir", key=f"mod_{i}", use_container_width=True):
+                st.session_state.messages.append({"role": "user", "content": mod["prompt"]})
+                st.rerun()
+
+    st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
+
+    # Module grid — row 2
+    col4, col5, col6 = st.columns(3, gap="small")
+    cols_row2 = [col4, col5, col6]
+
+    for i, mod in enumerate(MODULES[3:]):
+        with cols_row2[i]:
+            st.markdown(f"""
+            <div class="kv-module">
+              <div class="kv-module-icon">{mod["icon"]}</div>
+              <div class="kv-module-cat">{mod["cat"]}</div>
+              <div class="kv-module-title">{mod["title"]}</div>
+              <div class="kv-module-desc">{mod["desc"]}</div>
+              <div class="kv-module-arrow">Démarrer →</div>
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button("Ouvrir", key=f"mod_{i+3}", use_container_width=True):
+                st.session_state.messages.append({"role": "user", "content": mod["prompt"]})
+                st.rerun()
+
+# ── Conversation ──────────────────────────────────────────────────────────────
+else:
+
+    msg_count = len([m for m in st.session_state.messages if m["role"] == "user"])
+
+    # Top bar
+    st.markdown(f"""
+    <div class="kv-topbar">
+      <div class="kv-topbar-left">
+        <div class="kv-breadcrumb">K—VEFA <span>›</span> Conversation</div>
+        <div class="kv-conv-count">{msg_count} échange{"s" if msg_count > 1 else ""}</div>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Messages
+    for msg in st.session_state.messages:
+        avatar = "◇" if msg["role"] == "user" else "◆"
+        with st.chat_message(msg["role"], avatar=avatar):
+            st.markdown(msg["content"])
 
 # ── Input ─────────────────────────────────────────────────────────────────────
-prompt = st.chat_input("Décrivez votre besoin VEFA…")
+prompt = st.chat_input("Décrivez votre besoin VEFA — contenu, prospection, analyse…")
 
 if prompt:
     st.session_state.messages.append({"role": "user", "content": prompt})
@@ -789,8 +1102,10 @@ if prompt:
                         and event.delta.type == "text_delta"
                     ):
                         full_response += event.delta.text
-                        placeholder.markdown(full_response + '<span class="kv-cursor"></span>', unsafe_allow_html=True)
-
+                        placeholder.markdown(
+                            full_response + '<span class="kv-cursor"></span>',
+                            unsafe_allow_html=True,
+                        )
                 final = stream.get_final_message()
 
             if not full_response:
@@ -804,6 +1119,6 @@ if prompt:
             )
 
         except anthropic.AuthenticationError:
-            placeholder.error("Clé API invalide.")
+            placeholder.error("Clé API invalide. Vérifiez votre clé Anthropic.")
         except Exception as e:
             placeholder.error(f"Erreur : {e}")
