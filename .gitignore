@@ -6,3 +6,6 @@ __pycache__/
 
 # Mémoire locale de l'agent — historique des conversations utilisateur
 conversations.json
+
+# Données de prospection (contacts réels) — outil prospection-btp
+prospection-btp/prospects.json
