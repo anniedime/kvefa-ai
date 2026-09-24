@@ -6,3 +6,6 @@ __pycache__/
 
 # Mémoire locale de l'agent — historique des conversations utilisateur
 conversations.json
+
+# Historique local du calculateur Urssaf (données personnelles)
+urssaf_historique.json
