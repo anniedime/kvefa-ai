@@ -169,26 +169,68 @@ details.profil:not([open]) summary .chev::after { content: " ▼"; }
     </div>
   </details>
 
-  <div class="grid2">
-    <section class="card" aria-labelledby="t-saisie">
-      <h2 id="t-saisie">Ce que j'ai encaissé</h2>
+
+  <style>
+    .add-form { display: grid; gap: 14px; }
+    .add-form .row > .field.wide { flex: 2 1 200px; }
+    .monthnav { display: flex; align-items: center; gap: 8px; }
+    .monthnav button { border: 1px solid var(--line); background: var(--sheet); width: 34px; height: 34px; border-radius: 8px; font-size: 16px; line-height: 1; }
+    .monthnav button:hover { border-color: var(--accent); }
+    .monthnav .m { font-family: var(--display); font-weight: 700; font-size: 19px; min-width: 150px; text-align: center; }
+    .entries td { padding-block: 9px; }
+    .entries .lib { font-weight: 500; }
+    .entries .sub { font-size: 12px; color: var(--muted); }
+    .entries .del { border: none; background: none; color: var(--muted); font-size: 13px; padding: 2px 6px; }
+    .entries .del:hover { color: var(--bad); }
+    .entries tr.new td { background: var(--ok-soft); }
+    .enc-count { font-size: 13px; color: var(--muted); }
+  </style>
+
+  <section class="card" aria-labelledby="t-add">
+    <h2 id="t-add">J'ai reçu un paiement</h2>
+    <form class="add-form" id="addForm" novalidate>
       <div class="row">
-        <div class="field"><label for="mois">Mois</label><select id="mois"></select></div>
-        <div class="field"><label for="annee">Année</label><select id="annee"></select></div>
+        <div class="field"><label for="fMontant">Montant reçu</label>
+          <div class="money"><input type="number" inputmode="decimal" min="0.01" step="0.01" id="fMontant" placeholder="0,00" required></div></div>
+        <div class="field"><label for="fDate">Date d'encaissement</label><input type="date" id="fDate" required></div>
       </div>
-      <div id="caFields" style="display:grid;gap:14px"></div>
-      <p class="muted" style="margin:0;font-size:13px">Indiquez les sommes réellement reçues sur le mois, sans déduire vos frais.</p>
+      <div class="row">
+        <div class="field wide"><label for="fLib">Client ou description <span class="muted">(facultatif)</span></label>
+          <input type="text" id="fLib" maxlength="80" placeholder="ex. Facture 2026-014, Mme Martin" style="width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--paper)"></div>
+        <div class="field" id="fActBox"><label for="fAct">Activité</label><select id="fAct"></select></div>
+      </div>
       <div class="actions">
-        <button class="btn btn-primary" id="save" type="button">Enregistrer ce mois</button>
+        <button class="btn btn-primary" type="submit">Ajouter</button>
         <span class="toast" id="toast" role="status"></span>
+      </div>
+      <p class="muted" style="margin:0;font-size:13px">Comptez la date où l'argent arrive sur votre compte, pas celle de la facture. Montant total reçu, sans déduire vos frais.</p>
+    </form>
+  </section>
+
+  <div class="grid2">
+    <section class="card" aria-labelledby="t-enc">
+      <div class="actions" style="justify-content:space-between">
+        <h2 id="t-enc">Encaissements</h2>
+        <div class="monthnav">
+          <button type="button" id="prevM" aria-label="Mois précédent">‹</button>
+          <span class="m" id="curM"></span>
+          <button type="button" id="nextM" aria-label="Mois suivant">›</button>
+        </div>
+      </div>
+      <div class="scroll">
+        <table class="entries">
+          <tbody id="encBody"></tbody>
+          <tfoot><tr><td id="encCount" class="enc-count"></td><td class="r" id="encTotal"></td><td></td></tr></tfoot>
+        </table>
       </div>
     </section>
 
     <section class="card slip" aria-labelledby="t-res">
       <div>
-        <div class="label" id="t-res">À verser à l'Urssaf</div>
+        <div class="label" id="t-res">À verser à l'Urssaf pour <span id="resMois"></span></div>
         <div class="big" id="total">0,00 €</div>
-        <div class="example-note" id="exNote" hidden>Exemple avec 3 000 € encaissés. Saisissez votre montant.</div>
+        <div class="example-note" id="exNote" hidden>Exemple avec 3 000 € encaissés. Ajoutez vos paiements pour voir votre montant.</div>
+        <div class="muted" id="enCours" style="font-size:13px" hidden>Mois en cours : le montant augmente à chaque paiement ajouté.</div>
       </div>
       <div class="kpis">
         <div class="kpi"><span class="label">Il me reste</span><span class="v" id="net">—</span></div>
@@ -212,13 +254,13 @@ details.profil:not([open]) summary .chev::after { content: " ▼"; }
     </div>
     <div class="kpis" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
       <div class="kpi"><span class="label">CA encaissé</span><span class="v" id="yCa">—</span></div>
-      <div class="kpi"><span class="label">Versé à l'Urssaf</span><span class="v" id="yUrssaf">—</span></div>
+      <div class="kpi"><span class="label">À verser à l'Urssaf</span><span class="v" id="yUrssaf">—</span></div>
       <div class="kpi"><span class="label">Il me reste</span><span class="v" id="yNet">—</span></div>
     </div>
     <div class="chart" id="chart"></div>
     <div class="scroll">
       <table class="hist">
-        <thead><tr><th>Mois</th><th class="r">CA</th><th class="r">Urssaf</th><th class="r">Reste</th><th class="r">Date limite</th><th></th></tr></thead>
+        <thead><tr><th>Mois</th><th class="r">Paiements</th><th class="r">CA</th><th class="r">Urssaf</th><th class="r">Reste</th><th class="r">Date limite</th></tr></thead>
         <tbody id="histBody"></tbody>
       </table>
     </div>
@@ -276,51 +318,59 @@ const pct = x => (x * 100).toLocaleString("fr-FR", { maximumFractionDigits: 2 })
 const dfr = d => d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
 const cle = (a, m) => `${a}-${String(m).padStart(2, "0")}`;
 
+
 // ═══ Stockage : base de l'artifact, sinon navigateur ═══
-const LS_KEY = "urssaf-mensuel";
+const LS_KEY = "urssaf-encaissements";
 let db = null;
 const state = {
   profil: { activites: ["services_bic"], periodicite: "mensuelle", vl: false, debut: "", acre: false, acreRed: 0.5 },
-  mois: {}, // "2026-08" -> { ca: {code: montant}, total }
+  enc: {}, // id -> { date: "2026-09-12", montant, activite, libelle }
 };
 function lsSave() { try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (e) {} }
 function lsLoad() {
   try { const s = JSON.parse(localStorage.getItem(LS_KEY) || "null"); if (s) Object.assign(state, s); } catch (e) {}
 }
 function setSync(txt, cls = "") { const el = document.getElementById("sync"); el.textContent = txt; el.className = "pill " + cls; }
+const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
 async function saveProfil() {
   if (db) { try { await db.doc("profil/main").set(state.profil); } catch (e) { setSync("Profil non enregistré", "bad"); } }
   else lsSave();
 }
-async function saveMois(k) {
+async function saveEnc(id) {
   if (db) {
-    try { state.mois[k] ? await db.doc("mois/" + k).set(state.mois[k]) : await db.doc("mois/" + k).delete(); }
+    try { state.enc[id] ? await db.doc("encaissements/" + id).set(state.enc[id]) : await db.doc("encaissements/" + id).delete(); }
     catch (e) { setSync("Enregistrement impossible", "bad"); throw e; }
   } else lsSave();
 }
 
-// ═══ Interface ═══
-const $ = id => document.getElementById(id);
-const today = new Date();
-let selA = today.getMonth() === 0 ? today.getFullYear() - 1 : today.getFullYear();
-let selM = today.getMonth() === 0 ? 12 : today.getMonth(); // mois précédent = celui qu'on déclare
-let histA = selA;
-let drafts = {}; // saisie en cours non enregistrée, par mois
-
-function buildStatic() {
-  $("mois").innerHTML = MOIS.map((m, i) => `<option value="${i + 1}">${cap(m)}</option>`).join("");
-  const years = []; for (let y = today.getFullYear() + 1; y >= 2020; y--) years.push(y);
-  $("annee").innerHTML = years.map(y => `<option>${y}</option>`).join("");
-  $("actChecks").innerHTML = Object.entries(ACTIVITES).map(([c, p]) =>
-    `<label class="check"><input type="checkbox" value="${c}" id="act_${c}"><span>${p.label}<small>Cotisations ${pct(p.taux)}</small></span></label>`).join("");
+// ═══ Agrégats ═══
+const moisDe = e => e.date.slice(0, 7);
+const encDuMois = k => Object.entries(state.enc).filter(([, e]) => moisDe(e) === k)
+  .sort((a, b) => b[1].date.localeCompare(a[1].date) || (b[1].cree || 0) - (a[1].cree || 0));
+function caDuMois(k) {
+  const o = {};
+  encDuMois(k).forEach(([, e]) => o[e.activite] = Math.round(((o[e.activite] || 0) + Number(e.montant)) * 100) / 100);
+  return o;
+}
+function calcMois(a, m, ca = caDuMois(cle(a, m))) {
+  const p = state.profil;
+  return calculer(ca, { acre: acreActive(p, a, m), acreRed: p.acreRed, vl: p.vl });
 }
 
-function currentCa() {
-  const k = cle(selA, selM);
-  if (drafts[k]) return drafts[k];
-  const saved = state.mois[k]?.ca || {};
-  const o = {}; state.profil.activites.forEach(c => o[c] = saved[c] ?? ""); return o;
+// ═══ Interface ═══
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const today = new Date();
+const isoJour = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+let selA = today.getFullYear(), selM = today.getMonth() + 1; // mois affiché : le mois en cours
+let histA = selA;
+let dernierAjout = null;
+
+function buildStatic() {
+  $("actChecks").innerHTML = Object.entries(ACTIVITES).map(([c, p]) =>
+    `<label class="check"><input type="checkbox" value="${c}" id="act_${c}"><span>${p.label}<small>Cotisations ${pct(p.taux)}</small></span></label>`).join("");
+  $("fDate").value = isoJour(today);
 }
 
 function renderProfil() {
@@ -334,39 +384,56 @@ function renderProfil() {
     : "Réduction des cotisations sociales les premiers trimestres. Renseignez votre date de début.";
   const acts = p.activites.map(c => ACTIVITES[c].court).join(" + ") || "Aucune activité choisie";
   $("profilResume").innerHTML = `<strong>${acts}</strong> <span class="muted">· déclaration ${p.periodicite}${p.vl ? " · versement libératoire" : ""}${p.acre ? " · ACRE" : ""}</span>`;
+  // Sélecteur d'activité du formulaire : visible seulement s'il y a le choix
+  const prev = $("fAct").value;
+  const acts2 = p.activites.length ? p.activites : Object.keys(ACTIVITES);
+  $("fAct").innerHTML = acts2.map(c => `<option value="${c}">${ACTIVITES[c].court}</option>`).join("");
+  if (acts2.includes(prev)) $("fAct").value = prev;
+  $("fActBox").hidden = acts2.length < 2;
 }
 
-function renderSaisie() {
-  $("mois").value = selM; $("annee").value = selA;
-  const ca = currentCa();
-  if (!state.profil.activites.length) {
-    $("caFields").innerHTML = `<p class="muted">Choisissez au moins une activité dans votre profil.</p>`; return;
-  }
-  $("caFields").innerHTML = state.profil.activites.map(c => `
-    <div class="field"><label for="ca_${c}">${ACTIVITES[c].label}</label>
-      <div class="money"><input type="number" inputmode="decimal" min="0" step="0.01" id="ca_${c}" data-code="${c}" placeholder="0" value="${ca[c] ?? ""}"></div>
-    </div>`).join("");
-  $("caFields").querySelectorAll("input").forEach(inp => inp.addEventListener("input", () => {
-    const k = cle(selA, selM); drafts[k] = { ...currentCa(), [inp.dataset.code]: inp.value };
-    $("toast").textContent = ""; renderResultat();
+function renderEncaissements() {
+  const k = cle(selA, selM);
+  $("curM").textContent = `${cap(MOIS[selM - 1])} ${selA}`;
+  const list = encDuMois(k);
+  const plusieurs = state.profil.activites.length > 1;
+  $("encBody").innerHTML = list.length ? list.map(([id, e]) => `
+    <tr class="${id === dernierAjout ? "new" : ""}">
+      <td><div class="lib">${e.libelle ? esc(e.libelle) : "Paiement"}</div>
+        <div class="sub num">${dfr(new Date(e.date + "T00:00"))}${plusieurs ? " · " + ACTIVITES[e.activite].court : ""}</div></td>
+      <td class="r">${eur(e.montant)}</td>
+      <td class="r"><button class="del" type="button" data-id="${id}" aria-label="Supprimer ce paiement">Supprimer</button></td>
+    </tr>`).join("")
+    : `<tr><td colspan="3" class="muted">Aucun paiement enregistré en ${MOIS[selM - 1]} ${selA}.</td></tr>`;
+  const tot = list.reduce((s, [, e]) => s + Number(e.montant), 0);
+  $("encCount").textContent = list.length ? `${list.length} paiement${list.length > 1 ? "s" : ""}` : "";
+  $("encTotal").textContent = list.length ? eur(tot) : "";
+  $("encBody").querySelectorAll(".del").forEach(b => b.addEventListener("click", async () => {
+    if (b.dataset.confirm !== "1") { b.dataset.confirm = "1"; b.textContent = "Confirmer ?"; return; }
+    const id = b.dataset.id, old = state.enc[id]; delete state.enc[id];
+    try { await saveEnc(id); } catch (e) { state.enc[id] = old; }
+    renderMois();
   }));
 }
 
 function renderResultat() {
   const p = state.profil;
-  let ca = currentCa();
-  const vide = !Object.values(ca).some(v => Number(v) > 0);
+  let ca = caDuMois(cle(selA, selM));
+  const vide = !Object.keys(ca).length;
   if (vide && p.activites.length) ca = { [p.activites[0]]: 3000 };
   const acre = acreActive(p, selA, selM);
-  const r = calculer(ca, { acre, acreRed: p.acreRed, vl: p.vl });
+  const r = calcMois(selA, selM, ca);
+  $("resMois").textContent = `${MOIS[selM - 1]} ${selA}`;
   $("exNote").hidden = !vide;
+  $("enCours").hidden = vide || !(selA === today.getFullYear() && selM === today.getMonth() + 1);
   $("total").textContent = eur(r.total);
   $("net").textContent = eur(r.net);
   $("due").textContent = dfr(echeance(selA, selM, p.periodicite));
   const rows = [];
-  r.lignes.filter(l => l.ca).forEach(l => {
+  const actives = r.lignes.filter(l => l.ca);
+  actives.forEach(l => {
     const a = ACTIVITES[l.code];
-    if (r.lignes.filter(x => x.ca).length > 1) rows.push(`<tr><td colspan="3"><strong>${a.court}</strong> <span class="muted num">· ${eur(l.ca)}</span></td></tr>`);
+    if (actives.length > 1) rows.push(`<tr><td colspan="3"><strong>${a.court}</strong> <span class="muted num">· ${eur(l.ca)}</span></td></tr>`);
     rows.push(`<tr><td>Cotisations sociales</td><td class="r">${pct(l.taux)}</td><td class="r">${eur(l.cotis)}</td></tr>`);
     rows.push(`<tr><td>Formation professionnelle</td><td class="r">${pct(a.cfp)}</td><td class="r">${eur(l.cfp)}</td></tr>`);
     if (p.vl) rows.push(`<tr><td>Impôt (versement libératoire)</td><td class="r">${pct(a.vl)}</td><td class="r">${eur(l.vl)}</td></tr>`);
@@ -379,53 +446,53 @@ function renderResultat() {
 
 function renderBanner() {
   const p = state.profil;
-  // prochaine échéance : le mois précédent (ou le trimestre écoulé) non encore enregistré
+  // Période à déclarer maintenant : le mois (ou le trimestre) terminé le plus récent
   let a = today.getFullYear(), m = today.getMonth(); if (m === 0) { m = 12; a--; }
-  let due = echeance(a, m, p.periodicite);
-  let label = p.periodicite === "trimestrielle" ? `${Math.ceil(m / 3)}e trimestre ${a}` : `${cap(MOIS[m - 1])} ${a}`;
-  if (p.periodicite === "trimestrielle" && m % 3 !== 0) {
-    // trimestre pas encore terminé : on regarde le précédent
-    const q = Math.ceil(m / 3) - 1; const aa = q === 0 ? a - 1 : a; const qq = q === 0 ? 4 : q;
-    due = echeance(aa, qq * 3, "trimestrielle"); label = `${qq}e trimestre ${aa}`;
+  let mois = [[a, m]], label = `${cap(MOIS[m - 1])} ${a}`;
+  if (p.periodicite === "trimestrielle") {
+    const q = Math.floor(m / 3) || 4, aa = Math.floor(m / 3) ? a : a - 1; // dernier trimestre terminé
+    mois = [1, 2, 3].map(i => [aa, (q - 1) * 3 + i]); label = `${q}e trimestre ${aa}`;
+    [a, m] = mois[2];
   }
+  const due = echeance(a, m, p.periodicite);
+  const montant = mois.reduce((s, [y, mm]) => s + calcMois(y, mm).total, 0);
   const jours = Math.ceil((due - new Date(today.toDateString())) / 86400000);
-  const fait = p.periodicite === "mensuelle" && state.mois[cle(a, m)];
-  const cls = fait ? "ok" : jours < 0 ? "bad" : jours <= 7 ? "warn" : "";
-  const etat = fait ? "Montant calculé et enregistré" : jours < 0 ? `En retard de ${-jours} j` : jours === 0 ? "Aujourd'hui" : `Dans ${jours} jour${jours > 1 ? "s" : ""}`;
-  $("banner").innerHTML = `<span>Prochaine déclaration : <strong>${label}</strong>, avant le <strong class="num">${dfr(due)}</strong></span><span class="pill ${cls}">${etat}</span>`;
+  const cls = jours < 0 ? "bad" : jours <= 7 ? "warn" : "";
+  const etat = jours < 0 ? "Date dépassée" : jours === 0 ? "Aujourd'hui" : `Dans ${jours} jour${jours > 1 ? "s" : ""}`;
+  $("banner").innerHTML = `<span>À déclarer pour <strong>${label}</strong> : <strong class="num">${eur(montant)}</strong> avant le <strong class="num">${dfr(due)}</strong></span><span class="pill ${cls}">${etat}</span>`;
 }
 
 function renderHistorique() {
-  const years = [...new Set([selA, today.getFullYear(), ...Object.keys(state.mois).map(k => +k.slice(0, 4))])].sort((a, b) => b - a);
+  const years = [...new Set([selA, today.getFullYear(), ...Object.values(state.enc).map(e => +e.date.slice(0, 4))])].sort((a, b) => b - a);
   if (!years.includes(histA)) histA = years[0];
   $("histYear").innerHTML = years.map(y => `<option ${y === histA ? "selected" : ""}>${y}</option>`).join("");
-  const keys = Object.keys(state.mois).filter(k => k.startsWith(histA + "-")).sort();
-  const lignes = keys.map(k => {
-    const d = state.mois[k]; const ca = Object.values(d.ca).reduce((s, v) => s + Number(v || 0), 0);
-    return { k, m: +k.slice(5), ca, u: d.total, net: ca - d.total };
-  });
+  const lignes = [];
+  for (let m = 1; m <= 12; m++) {
+    const n = encDuMois(cle(histA, m)).length;
+    if (!n) continue;
+    const r = calcMois(histA, m);
+    lignes.push({ m, n, ca: r.ca, u: r.total, net: r.net });
+  }
   const S = f => lignes.reduce((s, l) => s + l[f], 0);
   $("yCa").textContent = eur(S("ca")); $("yUrssaf").textContent = eur(S("u")); $("yNet").textContent = eur(S("net"));
   $("histBody").innerHTML = lignes.length ? lignes.map(l => `
-    <tr class="${l.k === cle(selA, selM) ? "cur" : ""}"><td>${cap(MOIS[l.m - 1])}</td><td class="r">${eur(l.ca)}</td><td class="r">${eur(l.u)}</td>
-      <td class="r">${eur(l.net)}</td><td class="r">${dfr(echeance(histA, l.m, state.profil.periodicite))}</td>
-      <td class="r"><button class="del" data-k="${l.k}" aria-label="Supprimer ${MOIS[l.m - 1]}">Supprimer</button></td></tr>`).join("")
-    : `<tr><td colspan="6" class="muted">Aucun mois enregistré en ${histA}. Saisissez un montant puis « Enregistrer ce mois ».</td></tr>`;
-  $("histBody").querySelectorAll(".del").forEach(b => b.addEventListener("click", async () => {
-    if (b.dataset.confirm !== "1") { b.dataset.confirm = "1"; b.textContent = "Confirmer ?"; return; }
-    const k = b.dataset.k; const old = state.mois[k]; delete state.mois[k];
-    try { await saveMois(k); } catch (e) { state.mois[k] = old; }
-    renderAll();
+    <tr class="${histA === selA && l.m === selM ? "cur" : ""}" data-m="${l.m}" style="cursor:pointer"><td>${cap(MOIS[l.m - 1])}</td><td class="r">${l.n}</td><td class="r">${eur(l.ca)}</td><td class="r">${eur(l.u)}</td>
+      <td class="r">${eur(l.net)}</td><td class="r">${dfr(echeance(histA, l.m, state.profil.periodicite))}</td></tr>`).join("")
+    : `<tr><td colspan="6" class="muted">Aucun paiement enregistré en ${histA}.</td></tr>`;
+  $("histBody").querySelectorAll("tr[data-m]").forEach(tr => tr.addEventListener("click", () => {
+    selA = histA; selM = +tr.dataset.m; renderMois();
+    $("t-enc").scrollIntoView({ behavior: "smooth", block: "start" });
   }));
   renderChart(lignes);
-  // Plafonds
-  const caAct = {}; keys.forEach(k => Object.entries(state.mois[k].ca).forEach(([c, v]) => caAct[c] = (caAct[c] || 0) + Number(v || 0)));
+  // Plafonds de CA annuels
+  const caAct = {};
+  Object.values(state.enc).filter(e => e.date.startsWith(histA + "-")).forEach(e => caAct[e.activite] = (caAct[e.activite] || 0) + Number(e.montant));
   const glob = Object.values(caAct).reduce((s, v) => s + v, 0), serv = glob - (caAct.vente || 0);
-  const meters = [];
   const meter = (nom, v, max) => {
     const r = v / max, cls = r >= 1 ? "bad" : r >= 0.8 ? "warn" : "";
     return `<div style="display:grid;gap:6px"><div class="actions" style="justify-content:space-between"><span class="label">${nom}</span><span class="num" style="font-size:13px">${eur(v)} / ${eur(max)}</span></div><div class="meter ${cls}"><span style="width:${Math.min(r * 100, 100)}%"></span></div></div>`;
   };
+  const meters = [];
   if (caAct.vente) meters.push(meter(`Plafond micro-entreprise ${histA} (total)`, glob, PLAFOND_GLOBAL));
   if (serv > 0 || !caAct.vente) meters.push(meter(`Plafond micro-entreprise ${histA} (services)`, serv, PLAFOND_SERVICES));
   $("plafonds").innerHTML = meters.join("");
@@ -447,14 +514,16 @@ function renderChart(lignes) {
     if (v) g += `<rect x="${x}" y="${y(v)}" width="${bw * 0.6}" height="${y(0) - y(v)}" rx="3" fill="var(--accent)"><title>${cap(MOIS[i])} : ${eur(v)}</title></rect>`;
     g += `<text x="${x + bw * 0.3}" y="${H - 6}" text-anchor="middle" font-size="11" fill="var(--muted)">${MOIS_COURT[i]}</text>`;
   });
-  $("chart").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Montants versés à l'Urssaf par mois en ${histA}">${g}</svg>`;
+  $("chart").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Montants à verser à l'Urssaf par mois en ${histA}">${g}</svg>`;
 }
 
-function renderAll() { renderProfil(); renderSaisie(); renderResultat(); renderBanner(); renderHistorique(); }
+function renderMois() { renderEncaissements(); renderResultat(); renderBanner(); renderHistorique(); }
+function renderAll() { renderProfil(); renderMois(); }
 
 function wire() {
-  $("mois").addEventListener("change", e => { selM = +e.target.value; $("toast").textContent = ""; renderSaisie(); renderResultat(); renderHistorique(); });
-  $("annee").addEventListener("change", e => { selA = +e.target.value; histA = selA; $("toast").textContent = ""; renderSaisie(); renderResultat(); renderHistorique(); });
+  const shift = d => { selM += d; if (selM < 1) { selM = 12; selA--; } if (selM > 12) { selM = 1; selA++; } dernierAjout = null; renderMois(); };
+  $("prevM").addEventListener("click", () => shift(-1));
+  $("nextM").addEventListener("click", () => shift(1));
   $("histYear").addEventListener("change", e => { histA = +e.target.value; renderHistorique(); });
   const upd = patch => { Object.assign(state.profil, patch); saveProfil(); renderAll(); };
   $("actChecks").addEventListener("change", () => upd({ activites: [...document.querySelectorAll("#actChecks input:checked")].map(i => i.value) }));
@@ -463,15 +532,24 @@ function wire() {
   $("acre").addEventListener("change", e => upd({ acre: e.target.checked }));
   $("debut").addEventListener("change", e => upd({ debut: e.target.value }));
   $("acreRed").addEventListener("change", e => upd({ acreRed: +e.target.value }));
-  $("save").addEventListener("click", async () => {
-    const k = cle(selA, selM), ca = {};
-    Object.entries(currentCa()).forEach(([c, v]) => { if (Number(v) > 0) ca[c] = Math.round(Number(v) * 100) / 100; });
-    const r = calculer(ca, { acre: acreActive(state.profil, selA, selM), acreRed: state.profil.acreRed, vl: state.profil.vl });
-    const old = state.mois[k];
-    state.mois[k] = { ca, total: r.total };
-    try { await saveMois(k); delete drafts[k]; $("toast").textContent = `${cap(MOIS[selM - 1])} ${selA} enregistré.`; }
-    catch (e) { state.mois[k] = old; $("toast").textContent = ""; }
-    histA = selA; renderBanner(); renderHistorique();
+
+  $("addForm").addEventListener("submit", async ev => {
+    ev.preventDefault();
+    const montant = Math.round(parseFloat(String($("fMontant").value).replace(",", ".")) * 100) / 100;
+    const date = $("fDate").value;
+    if (!(montant > 0)) { $("toast").style.color = "var(--bad)"; $("toast").textContent = "Indiquez un montant supérieur à 0."; $("fMontant").focus(); return; }
+    if (!date) { $("toast").style.color = "var(--bad)"; $("toast").textContent = "Indiquez la date d'encaissement."; $("fDate").focus(); return; }
+    const activite = $("fAct").value || state.profil.activites[0] || "services_bic";
+    const id = newId();
+    state.enc[id] = { date, montant, activite, libelle: $("fLib").value.trim(), cree: Date.now() };
+    try {
+      await saveEnc(id);
+      dernierAjout = id;
+      selA = +date.slice(0, 4); selM = +date.slice(5, 7); histA = selA;
+      $("toast").style.color = ""; $("toast").textContent = `${eur(montant)} ajouté.`;
+      $("fMontant").value = ""; $("fLib").value = ""; $("fMontant").focus();
+    } catch (e) { delete state.enc[id]; $("toast").style.color = "var(--bad)"; $("toast").textContent = "Paiement non enregistré. Réessayez."; }
+    renderMois();
   });
 }
 
@@ -483,10 +561,10 @@ if (!state.profil.activites.length) $("profilBox").open = true;
   try { db = window.claude?.use ? await window.claude.use("db") : null; } catch (e) { db = null; }
   if (!db) { setSync("Enregistré sur cet appareil"); return; }
   try {
-    const [p, ms] = await Promise.all([db.doc("profil/main").get(), db.collection("mois").get()]);
+    const [p, es] = await Promise.all([db.doc("profil/main").get(), db.collection("encaissements").limit(1000).get()]);
     if (p.exists) state.profil = { ...state.profil, ...p.data() };
     else await db.doc("profil/main").set(state.profil);
-    state.mois = {}; ms.docs.forEach(d => { if (d.exists) state.mois[d.id] = d.data(); });
+    state.enc = {}; es.docs.forEach(d => { if (d.exists) state.enc[d.id] = d.data(); });
     setSync("Synchronisé", "ok");
     renderAll();
     if (!p.exists) $("profilBox").open = true;
