@@ -1,0 +1,495 @@
+<title>Mon Urssaf mensuel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --paper: #F3F4F7;
+  --sheet: #FFFFFF;
+  --ink: #161A22;
+  --muted: #5A6173;
+  --line: #DDE0E8;
+  --accent: #1F3F8F;
+  --accent-soft: #E6ECFA;
+  --ok: #2B7A57;
+  --ok-soft: #E3F2EA;
+  --warn: #A86512;
+  --warn-soft: #FBF0DF;
+  --bad: #B3362D;
+  --bad-soft: #FBE7E5;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #0F1219; --sheet: #171B25; --ink: #E8EAF0; --muted: #9AA1B2; --line: #2A3040;
+    --accent: #8FA9EC; --accent-soft: #1E2944; --ok: #6CC49A; --ok-soft: #173327;
+    --warn: #E5A65A; --warn-soft: #3A2A14; --bad: #EE8A80; --bad-soft: #3B1C1A;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #0F1219; --sheet: #171B25; --ink: #E8EAF0; --muted: #9AA1B2; --line: #2A3040;
+  --accent: #8FA9EC; --accent-soft: #1E2944; --ok: #6CC49A; --ok-soft: #173327;
+  --warn: #E5A65A; --warn-soft: #3A2A14; --bad: #EE8A80; --bad-soft: #3B1C1A;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--paper); color: var(--ink); font: 15px/1.5 var(--body); padding-inline: 16px; padding-block: 24px 48px; }
+.wrap { max-width: 960px; margin: 0 auto; display: grid; gap: 20px; }
+h1, h2 { font-family: var(--display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(26px, 5vw, 36px); font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 19px; font-weight: 700; }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; }
+.muted { color: var(--muted); }
+header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px; }
+header p { margin: 4px 0 0; color: var(--muted); }
+button, select, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+.btn { border: 1px solid var(--line); background: var(--sheet); padding: 8px 14px; border-radius: 8px; font-weight: 500; }
+.btn:hover { border-color: var(--accent); }
+.btn-primary { background: var(--accent); color: var(--sheet); border-color: var(--accent); }
+.btn-primary:hover { filter: brightness(1.08); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.banner { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; padding: 12px 16px; border-radius: 10px; background: var(--accent-soft); }
+.banner strong { font-weight: 600; }
+.pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 999px; background: var(--sheet); }
+.pill.ok { color: var(--ok); background: var(--ok-soft); }
+.pill.warn { color: var(--warn); background: var(--warn-soft); }
+.pill.bad { color: var(--bad); background: var(--bad-soft); }
+
+.grid2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 20px; }
+@media (max-width: 720px) { .grid2 { grid-template-columns: 1fr; } }
+.card { background: var(--sheet); border: 1px solid var(--line); border-radius: 12px; padding: 20px; display: grid; gap: 16px; align-content: start; }
+.field { display: grid; gap: 6px; }
+.field label { font-size: 14px; font-weight: 500; }
+.row { display: flex; gap: 12px; flex-wrap: wrap; }
+.row > * { flex: 1 1 140px; }
+select, input[type="number"], input[type="date"] {
+  width: 100%; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper);
+}
+.money { position: relative; }
+.money input { padding-right: 34px; font-family: var(--mono); font-size: 17px; }
+.money::after { content: "€"; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+
+/* Bordereau */
+.slip { border-top: 4px solid var(--accent); }
+.big { font-family: var(--mono); font-size: clamp(34px, 7vw, 46px); font-weight: 500; line-height: 1.1; letter-spacing: -0.02em; }
+.kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.kpi { display: grid; gap: 2px; padding: 12px; border-radius: 8px; background: var(--paper); }
+.kpi .v { font-family: var(--mono); font-size: 18px; }
+table { width: 100%; border-collapse: collapse; }
+td, th { padding: 7px 0; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+th { font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+td.r, th.r { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; padding-left: 12px; }
+tfoot td { font-weight: 600; border-bottom: none; }
+.example-note { font-size: 13px; color: var(--warn); }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.toast { font-size: 14px; color: var(--ok); }
+
+/* Historique */
+.scroll { overflow-x: auto; }
+.hist td, .hist th { padding-right: 8px; }
+.hist .del { border: none; background: none; color: var(--muted); font-size: 13px; padding: 2px 6px; }
+.hist .del:hover { color: var(--bad); }
+.hist tr.cur td { background: var(--accent-soft); }
+.chart svg { width: 100%; height: auto; display: block; }
+.meter { height: 10px; background: var(--paper); border-radius: 999px; overflow: hidden; border: 1px solid var(--line); }
+.meter > span { display: block; height: 100%; background: var(--accent); }
+.meter.warn > span { background: var(--warn); }
+.meter.bad > span { background: var(--bad); }
+
+/* Profil */
+details.profil summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+details.profil summary::-webkit-details-marker { display: none; }
+details.profil summary .chev { color: var(--accent); font-weight: 600; font-size: 14px; }
+details.profil[open] summary .chev::after { content: " ▲"; }
+details.profil:not([open]) summary .chev::after { content: " ▼"; }
+.checks { display: grid; gap: 8px; }
+.check { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; }
+.check input { margin-top: 3px; accent-color: var(--accent); }
+.check small { color: var(--muted); display: block; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { border: none; background: var(--sheet); padding: 7px 14px; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--sheet); }
+.foot { font-size: 13px; color: var(--muted); }
+.foot a { color: var(--accent); }
+@media (prefers-reduced-motion: no-preference) { .meter > span { transition: width .4s ease; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Mon Urssaf mensuel</h1>
+      <p>Micro-entreprise · ce que je dois verser selon ce que j'ai encaissé</p>
+    </div>
+    <span id="sync" class="pill">Chargement…</span>
+  </header>
+
+  <div class="banner" id="banner"></div>
+
+  <details class="profil card" id="profilBox">
+    <summary>
+      <div>
+        <div class="label">Mon profil</div>
+        <div id="profilResume"></div>
+      </div>
+      <span class="chev">Modifier</span>
+    </summary>
+    <div class="grid2">
+      <div class="field">
+        <span class="label">Mes activités</span>
+        <div class="checks" id="actChecks"></div>
+      </div>
+      <div style="display:grid;gap:16px;align-content:start">
+        <div class="field">
+          <span class="label">Je déclare</span>
+          <div class="seg" id="perio">
+            <button type="button" data-v="mensuelle">Tous les mois</button>
+            <button type="button" data-v="trimestrielle">Tous les trimestres</button>
+          </div>
+        </div>
+        <label class="check"><input type="checkbox" id="vl"><span>Versement libératoire de l'impôt<small>L'impôt sur le revenu est payé en même temps que les cotisations.</small></span></label>
+        <div class="field">
+          <label for="debut">Date de début d'activité</label>
+          <input type="date" id="debut">
+        </div>
+        <label class="check"><input type="checkbox" id="acre"><span>Je bénéficie de l'ACRE<small id="acreInfo">Réduction des cotisations sociales les premiers trimestres.</small></span></label>
+        <div class="field" id="acreRedBox">
+          <label for="acreRed">Réduction ACRE</label>
+          <select id="acreRed">
+            <option value="0.5">50 %</option>
+            <option value="0.25">25 %</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <div class="grid2">
+    <section class="card" aria-labelledby="t-saisie">
+      <h2 id="t-saisie">Ce que j'ai encaissé</h2>
+      <div class="row">
+        <div class="field"><label for="mois">Mois</label><select id="mois"></select></div>
+        <div class="field"><label for="annee">Année</label><select id="annee"></select></div>
+      </div>
+      <div id="caFields" style="display:grid;gap:14px"></div>
+      <p class="muted" style="margin:0;font-size:13px">Indiquez les sommes réellement reçues sur le mois, sans déduire vos frais.</p>
+      <div class="actions">
+        <button class="btn btn-primary" id="save" type="button">Enregistrer ce mois</button>
+        <span class="toast" id="toast" role="status"></span>
+      </div>
+    </section>
+
+    <section class="card slip" aria-labelledby="t-res">
+      <div>
+        <div class="label" id="t-res">À verser à l'Urssaf</div>
+        <div class="big" id="total">0,00 €</div>
+        <div class="example-note" id="exNote" hidden>Exemple avec 3 000 € encaissés. Saisissez votre montant.</div>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><span class="label">Il me reste</span><span class="v" id="net">—</span></div>
+        <div class="kpi"><span class="label">Date limite</span><span class="v" id="due">—</span></div>
+      </div>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Détail</th><th class="r">Taux</th><th class="r">Montant</th></tr></thead>
+          <tbody id="detail"></tbody>
+          <tfoot><tr><td>Total</td><td></td><td class="r" id="detailTotal"></td></tr></tfoot>
+        </table>
+      </div>
+      <div id="acreNote" class="pill ok" hidden></div>
+    </section>
+  </div>
+
+  <section class="card" aria-labelledby="t-hist">
+    <div class="actions" style="justify-content:space-between">
+      <h2 id="t-hist">Mon année</h2>
+      <select id="histYear" style="width:auto" aria-label="Année affichée"></select>
+    </div>
+    <div class="kpis" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+      <div class="kpi"><span class="label">CA encaissé</span><span class="v" id="yCa">—</span></div>
+      <div class="kpi"><span class="label">Versé à l'Urssaf</span><span class="v" id="yUrssaf">—</span></div>
+      <div class="kpi"><span class="label">Il me reste</span><span class="v" id="yNet">—</span></div>
+    </div>
+    <div class="chart" id="chart"></div>
+    <div class="scroll">
+      <table class="hist">
+        <thead><tr><th>Mois</th><th class="r">CA</th><th class="r">Urssaf</th><th class="r">Reste</th><th class="r">Date limite</th><th></th></tr></thead>
+        <tbody id="histBody"></tbody>
+      </table>
+    </div>
+    <div id="plafonds" style="display:grid;gap:12px"></div>
+  </section>
+
+  <p class="foot">Taux micro-entreprise 2026, donnés à titre indicatif. Vérifiez-les sur
+    <a href="https://www.autoentrepreneur.urssaf.fr" target="_blank" rel="noopener">autoentrepreneur.urssaf.fr</a>.
+    La taxe pour frais de chambre consulaire et la CFE ne sont pas incluses.</p>
+</div>
+
+<script>
+// ═══ Paramètres 2026 (même source que urssaf_calcul.py) ═══
+const ACTIVITES = {
+  vente:         { label: "Vente de marchandises / hébergement (BIC)", court: "Vente", taux: 0.123, cfp: 0.001, vl: 0.010 },
+  services_bic:  { label: "Prestations de services commerciales ou artisanales (BIC)", court: "Services BIC", taux: 0.212, cfp: 0.003, vl: 0.017 },
+  liberal_ssi:   { label: "Profession libérale non réglementée (BNC, SSI)", court: "Libéral SSI", taux: 0.261, cfp: 0.002, vl: 0.022 },
+  liberal_cipav: { label: "Profession libérale réglementée (BNC, Cipav)", court: "Libéral Cipav", taux: 0.232, cfp: 0.002, vl: 0.022 },
+  meuble_classe: { label: "Location meublée de tourisme classée", court: "Meublé classé", taux: 0.060, cfp: 0.001, vl: 0.010 },
+};
+const PLAFOND_GLOBAL = 203100, PLAFOND_SERVICES = 83600;
+const MOIS = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+const MOIS_COURT = ["janv","févr","mars","avr","mai","juin","juil","août","sept","oct","nov","déc"];
+const cap = s => s[0].toUpperCase() + s.slice(1);
+
+// ═══ Calcul ═══
+function calculer(caParAct, { acre = false, acreRed = 0.5, vl = false } = {}) {
+  const lignes = Object.entries(caParAct).map(([code, ca]) => {
+    const p = ACTIVITES[code];
+    ca = Math.round(Math.max(Number(ca) || 0, 0));
+    const taux = acre ? p.taux * (1 - acreRed) : p.taux;
+    const r2 = x => Math.round(x * 100) / 100;
+    return { code, ca, taux, cotis: r2(ca * taux), cfp: r2(ca * p.cfp), vl: vl ? r2(ca * p.vl) : 0 };
+  });
+  const sum = k => lignes.reduce((s, l) => s + l[k], 0);
+  const total = Math.round((sum("cotis") + sum("cfp") + sum("vl")) * 100) / 100;
+  return { lignes, ca: sum("ca"), total, net: sum("ca") - total };
+}
+const finDeMois = (a, m) => new Date(a, m, 0); // m : 1..12
+function echeance(a, m, perio) {
+  if (perio === "trimestrielle") m = Math.ceil(m / 3) * 3;
+  return m === 12 ? finDeMois(a + 1, 1) : finDeMois(a, m + 1);
+}
+function finAcre(debut) {
+  const t = Math.floor(debut.getMonth() / 3) + 3;
+  return finDeMois(debut.getFullYear() + Math.floor(t / 4), (t % 4) * 3 + 3);
+}
+function acreActive(p, a, m) {
+  if (!p.acre || !p.debut) return false;
+  const d = new Date(p.debut + "T00:00");
+  return (a * 12 + m) >= (d.getFullYear() * 12 + d.getMonth() + 1) && finDeMois(a, m) <= finAcre(d);
+}
+const eur = x => (Number(x) || 0).toLocaleString("fr-FR", { style: "currency", currency: "EUR" });
+const pct = x => (x * 100).toLocaleString("fr-FR", { maximumFractionDigits: 2 }) + " %";
+const dfr = d => d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
+const cle = (a, m) => `${a}-${String(m).padStart(2, "0")}`;
+
+// ═══ Stockage : base de l'artifact, sinon navigateur ═══
+const LS_KEY = "urssaf-mensuel";
+let db = null;
+const state = {
+  profil: { activites: ["services_bic"], periodicite: "mensuelle", vl: false, debut: "", acre: false, acreRed: 0.5 },
+  mois: {}, // "2026-08" -> { ca: {code: montant}, total }
+};
+function lsSave() { try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (e) {} }
+function lsLoad() {
+  try { const s = JSON.parse(localStorage.getItem(LS_KEY) || "null"); if (s) Object.assign(state, s); } catch (e) {}
+}
+function setSync(txt, cls = "") { const el = document.getElementById("sync"); el.textContent = txt; el.className = "pill " + cls; }
+
+async function saveProfil() {
+  if (db) { try { await db.doc("profil/main").set(state.profil); } catch (e) { setSync("Profil non enregistré", "bad"); } }
+  else lsSave();
+}
+async function saveMois(k) {
+  if (db) {
+    try { state.mois[k] ? await db.doc("mois/" + k).set(state.mois[k]) : await db.doc("mois/" + k).delete(); }
+    catch (e) { setSync("Enregistrement impossible", "bad"); throw e; }
+  } else lsSave();
+}
+
+// ═══ Interface ═══
+const $ = id => document.getElementById(id);
+const today = new Date();
+let selA = today.getMonth() === 0 ? today.getFullYear() - 1 : today.getFullYear();
+let selM = today.getMonth() === 0 ? 12 : today.getMonth(); // mois précédent = celui qu'on déclare
+let histA = selA;
+let drafts = {}; // saisie en cours non enregistrée, par mois
+
+function buildStatic() {
+  $("mois").innerHTML = MOIS.map((m, i) => `<option value="${i + 1}">${cap(m)}</option>`).join("");
+  const years = []; for (let y = today.getFullYear() + 1; y >= 2020; y--) years.push(y);
+  $("annee").innerHTML = years.map(y => `<option>${y}</option>`).join("");
+  $("actChecks").innerHTML = Object.entries(ACTIVITES).map(([c, p]) =>
+    `<label class="check"><input type="checkbox" value="${c}" id="act_${c}"><span>${p.label}<small>Cotisations ${pct(p.taux)}</small></span></label>`).join("");
+}
+
+function currentCa() {
+  const k = cle(selA, selM);
+  if (drafts[k]) return drafts[k];
+  const saved = state.mois[k]?.ca || {};
+  const o = {}; state.profil.activites.forEach(c => o[c] = saved[c] ?? ""); return o;
+}
+
+function renderProfil() {
+  const p = state.profil;
+  document.querySelectorAll("#actChecks input").forEach(i => i.checked = p.activites.includes(i.value));
+  document.querySelectorAll("#perio button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === p.periodicite));
+  $("vl").checked = p.vl; $("acre").checked = p.acre; $("debut").value = p.debut || "";
+  $("acreRed").value = String(p.acreRed); $("acreRedBox").hidden = !p.acre;
+  $("acreInfo").textContent = p.acre && p.debut
+    ? `Applicable jusqu'au ${dfr(finAcre(new Date(p.debut + "T00:00")))}.`
+    : "Réduction des cotisations sociales les premiers trimestres. Renseignez votre date de début.";
+  const acts = p.activites.map(c => ACTIVITES[c].court).join(" + ") || "Aucune activité choisie";
+  $("profilResume").innerHTML = `<strong>${acts}</strong> <span class="muted">· déclaration ${p.periodicite}${p.vl ? " · versement libératoire" : ""}${p.acre ? " · ACRE" : ""}</span>`;
+}
+
+function renderSaisie() {
+  $("mois").value = selM; $("annee").value = selA;
+  const ca = currentCa();
+  if (!state.profil.activites.length) {
+    $("caFields").innerHTML = `<p class="muted">Choisissez au moins une activité dans votre profil.</p>`; return;
+  }
+  $("caFields").innerHTML = state.profil.activites.map(c => `
+    <div class="field"><label for="ca_${c}">${ACTIVITES[c].label}</label>
+      <div class="money"><input type="number" inputmode="decimal" min="0" step="0.01" id="ca_${c}" data-code="${c}" placeholder="0" value="${ca[c] ?? ""}"></div>
+    </div>`).join("");
+  $("caFields").querySelectorAll("input").forEach(inp => inp.addEventListener("input", () => {
+    const k = cle(selA, selM); drafts[k] = { ...currentCa(), [inp.dataset.code]: inp.value };
+    $("toast").textContent = ""; renderResultat();
+  }));
+}
+
+function renderResultat() {
+  const p = state.profil;
+  let ca = currentCa();
+  const vide = !Object.values(ca).some(v => Number(v) > 0);
+  if (vide && p.activites.length) ca = { [p.activites[0]]: 3000 };
+  const acre = acreActive(p, selA, selM);
+  const r = calculer(ca, { acre, acreRed: p.acreRed, vl: p.vl });
+  $("exNote").hidden = !vide;
+  $("total").textContent = eur(r.total);
+  $("net").textContent = eur(r.net);
+  $("due").textContent = dfr(echeance(selA, selM, p.periodicite));
+  const rows = [];
+  r.lignes.filter(l => l.ca).forEach(l => {
+    const a = ACTIVITES[l.code];
+    if (r.lignes.filter(x => x.ca).length > 1) rows.push(`<tr><td colspan="3"><strong>${a.court}</strong> <span class="muted num">· ${eur(l.ca)}</span></td></tr>`);
+    rows.push(`<tr><td>Cotisations sociales</td><td class="r">${pct(l.taux)}</td><td class="r">${eur(l.cotis)}</td></tr>`);
+    rows.push(`<tr><td>Formation professionnelle</td><td class="r">${pct(a.cfp)}</td><td class="r">${eur(l.cfp)}</td></tr>`);
+    if (p.vl) rows.push(`<tr><td>Impôt (versement libératoire)</td><td class="r">${pct(a.vl)}</td><td class="r">${eur(l.vl)}</td></tr>`);
+  });
+  $("detail").innerHTML = rows.join("") || `<tr><td colspan="3" class="muted">Rien à déclarer ce mois-ci.</td></tr>`;
+  $("detailTotal").textContent = eur(r.total);
+  $("acreNote").hidden = !acre;
+  $("acreNote").textContent = `ACRE appliquée : cotisations sociales réduites de ${pct(p.acreRed)}`;
+}
+
+function renderBanner() {
+  const p = state.profil;
+  // prochaine échéance : le mois précédent (ou le trimestre écoulé) non encore enregistré
+  let a = today.getFullYear(), m = today.getMonth(); if (m === 0) { m = 12; a--; }
+  let due = echeance(a, m, p.periodicite);
+  let label = p.periodicite === "trimestrielle" ? `${Math.ceil(m / 3)}e trimestre ${a}` : `${cap(MOIS[m - 1])} ${a}`;
+  if (p.periodicite === "trimestrielle" && m % 3 !== 0) {
+    // trimestre pas encore terminé : on regarde le précédent
+    const q = Math.ceil(m / 3) - 1; const aa = q === 0 ? a - 1 : a; const qq = q === 0 ? 4 : q;
+    due = echeance(aa, qq * 3, "trimestrielle"); label = `${qq}e trimestre ${aa}`;
+  }
+  const jours = Math.ceil((due - new Date(today.toDateString())) / 86400000);
+  const fait = p.periodicite === "mensuelle" && state.mois[cle(a, m)];
+  const cls = fait ? "ok" : jours < 0 ? "bad" : jours <= 7 ? "warn" : "";
+  const etat = fait ? "Montant calculé et enregistré" : jours < 0 ? `En retard de ${-jours} j` : jours === 0 ? "Aujourd'hui" : `Dans ${jours} jour${jours > 1 ? "s" : ""}`;
+  $("banner").innerHTML = `<span>Prochaine déclaration : <strong>${label}</strong>, avant le <strong class="num">${dfr(due)}</strong></span><span class="pill ${cls}">${etat}</span>`;
+}
+
+function renderHistorique() {
+  const years = [...new Set([selA, today.getFullYear(), ...Object.keys(state.mois).map(k => +k.slice(0, 4))])].sort((a, b) => b - a);
+  if (!years.includes(histA)) histA = years[0];
+  $("histYear").innerHTML = years.map(y => `<option ${y === histA ? "selected" : ""}>${y}</option>`).join("");
+  const keys = Object.keys(state.mois).filter(k => k.startsWith(histA + "-")).sort();
+  const lignes = keys.map(k => {
+    const d = state.mois[k]; const ca = Object.values(d.ca).reduce((s, v) => s + Number(v || 0), 0);
+    return { k, m: +k.slice(5), ca, u: d.total, net: ca - d.total };
+  });
+  const S = f => lignes.reduce((s, l) => s + l[f], 0);
+  $("yCa").textContent = eur(S("ca")); $("yUrssaf").textContent = eur(S("u")); $("yNet").textContent = eur(S("net"));
+  $("histBody").innerHTML = lignes.length ? lignes.map(l => `
+    <tr class="${l.k === cle(selA, selM) ? "cur" : ""}"><td>${cap(MOIS[l.m - 1])}</td><td class="r">${eur(l.ca)}</td><td class="r">${eur(l.u)}</td>
+      <td class="r">${eur(l.net)}</td><td class="r">${dfr(echeance(histA, l.m, state.profil.periodicite))}</td>
+      <td class="r"><button class="del" data-k="${l.k}" aria-label="Supprimer ${MOIS[l.m - 1]}">Supprimer</button></td></tr>`).join("")
+    : `<tr><td colspan="6" class="muted">Aucun mois enregistré en ${histA}. Saisissez un montant puis « Enregistrer ce mois ».</td></tr>`;
+  $("histBody").querySelectorAll(".del").forEach(b => b.addEventListener("click", async () => {
+    if (b.dataset.confirm !== "1") { b.dataset.confirm = "1"; b.textContent = "Confirmer ?"; return; }
+    const k = b.dataset.k; const old = state.mois[k]; delete state.mois[k];
+    try { await saveMois(k); } catch (e) { state.mois[k] = old; }
+    renderAll();
+  }));
+  renderChart(lignes);
+  // Plafonds
+  const caAct = {}; keys.forEach(k => Object.entries(state.mois[k].ca).forEach(([c, v]) => caAct[c] = (caAct[c] || 0) + Number(v || 0)));
+  const glob = Object.values(caAct).reduce((s, v) => s + v, 0), serv = glob - (caAct.vente || 0);
+  const meters = [];
+  const meter = (nom, v, max) => {
+    const r = v / max, cls = r >= 1 ? "bad" : r >= 0.8 ? "warn" : "";
+    return `<div style="display:grid;gap:6px"><div class="actions" style="justify-content:space-between"><span class="label">${nom}</span><span class="num" style="font-size:13px">${eur(v)} / ${eur(max)}</span></div><div class="meter ${cls}"><span style="width:${Math.min(r * 100, 100)}%"></span></div></div>`;
+  };
+  if (caAct.vente) meters.push(meter(`Plafond micro-entreprise ${histA} (total)`, glob, PLAFOND_GLOBAL));
+  if (serv > 0 || !caAct.vente) meters.push(meter(`Plafond micro-entreprise ${histA} (services)`, serv, PLAFOND_SERVICES));
+  $("plafonds").innerHTML = meters.join("");
+}
+
+function renderChart(lignes) {
+  const W = 640, H = 170, pl = 44, pb = 22, pt = 10;
+  const vals = Array.from({ length: 12 }, (_, i) => (lignes.find(l => l.m === i + 1) || {}).u || 0);
+  const max = Math.max(...vals);
+  if (!max) { $("chart").innerHTML = ""; return; }
+  const step = [50, 100, 200, 250, 500, 1000, 2000, 2500, 5000, 10000].find(s => max / s <= 4) || 20000;
+  const top = Math.ceil(max / step) * step;
+  const y = v => pt + (H - pt - pb) * (1 - v / top);
+  const bw = (W - pl) / 12;
+  let g = "";
+  for (let v = 0; v <= top; v += step) g += `<line x1="${pl}" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${pl - 6}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="var(--muted)" font-family="var(--mono)">${v.toLocaleString("fr-FR")}</text>`;
+  vals.forEach((v, i) => {
+    const x = pl + i * bw + bw * 0.2;
+    if (v) g += `<rect x="${x}" y="${y(v)}" width="${bw * 0.6}" height="${y(0) - y(v)}" rx="3" fill="var(--accent)"><title>${cap(MOIS[i])} : ${eur(v)}</title></rect>`;
+    g += `<text x="${x + bw * 0.3}" y="${H - 6}" text-anchor="middle" font-size="11" fill="var(--muted)">${MOIS_COURT[i]}</text>`;
+  });
+  $("chart").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Montants versés à l'Urssaf par mois en ${histA}">${g}</svg>`;
+}
+
+function renderAll() { renderProfil(); renderSaisie(); renderResultat(); renderBanner(); renderHistorique(); }
+
+function wire() {
+  $("mois").addEventListener("change", e => { selM = +e.target.value; $("toast").textContent = ""; renderSaisie(); renderResultat(); renderHistorique(); });
+  $("annee").addEventListener("change", e => { selA = +e.target.value; histA = selA; $("toast").textContent = ""; renderSaisie(); renderResultat(); renderHistorique(); });
+  $("histYear").addEventListener("change", e => { histA = +e.target.value; renderHistorique(); });
+  const upd = patch => { Object.assign(state.profil, patch); saveProfil(); renderAll(); };
+  $("actChecks").addEventListener("change", () => upd({ activites: [...document.querySelectorAll("#actChecks input:checked")].map(i => i.value) }));
+  document.querySelectorAll("#perio button").forEach(b => b.addEventListener("click", () => upd({ periodicite: b.dataset.v })));
+  $("vl").addEventListener("change", e => upd({ vl: e.target.checked }));
+  $("acre").addEventListener("change", e => upd({ acre: e.target.checked }));
+  $("debut").addEventListener("change", e => upd({ debut: e.target.value }));
+  $("acreRed").addEventListener("change", e => upd({ acreRed: +e.target.value }));
+  $("save").addEventListener("click", async () => {
+    const k = cle(selA, selM), ca = {};
+    Object.entries(currentCa()).forEach(([c, v]) => { if (Number(v) > 0) ca[c] = Math.round(Number(v) * 100) / 100; });
+    const r = calculer(ca, { acre: acreActive(state.profil, selA, selM), acreRed: state.profil.acreRed, vl: state.profil.vl });
+    const old = state.mois[k];
+    state.mois[k] = { ca, total: r.total };
+    try { await saveMois(k); delete drafts[k]; $("toast").textContent = `${cap(MOIS[selM - 1])} ${selA} enregistré.`; }
+    catch (e) { state.mois[k] = old; $("toast").textContent = ""; }
+    histA = selA; renderBanner(); renderHistorique();
+  });
+}
+
+buildStatic(); wire(); lsLoad(); renderAll();
+if (!state.profil.activites.length) $("profilBox").open = true;
+
+// Connexion à la base de l'artifact (si disponible)
+(async () => {
+  try { db = window.claude?.use ? await window.claude.use("db") : null; } catch (e) { db = null; }
+  if (!db) { setSync("Enregistré sur cet appareil"); return; }
+  try {
+    const [p, ms] = await Promise.all([db.doc("profil/main").get(), db.collection("mois").get()]);
+    if (p.exists) state.profil = { ...state.profil, ...p.data() };
+    else await db.doc("profil/main").set(state.profil);
+    state.mois = {}; ms.docs.forEach(d => { if (d.exists) state.mois[d.id] = d.data(); });
+    setSync("Synchronisé", "ok");
+    renderAll();
+    if (!p.exists) $("profilBox").open = true;
+  } catch (e) { db = null; setSync("Enregistré sur cet appareil"); }
+})();
+</script>
